@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionBadge } from '@/components/ui/subscription-badge';
+import { Header } from '@/components/ui/header';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -53,30 +54,13 @@ export function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border/50 bg-gradient-primary/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground font-semibold">
-                  {currentUser?.username.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Mon Espace Fitness</h1>
-                <div className="flex items-center space-x-2">
-                  <p className="text-sm text-muted-foreground">Bienvenue, {currentUser?.username}</p>
-                  <SubscriptionBadge type={currentUser!.subscription} />
-                </div>
-              </div>
-            </div>
-            <Button onClick={logout} variant="outline">
-              Déconnexion
-            </Button>
-          </div>
-        </div>
-      </div>
+      <Header 
+        onLogout={logout} 
+        userInfo={{
+          username: currentUser?.username || '',
+          subscription: currentUser?.subscription || 'debutant'
+        }} 
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Statistiques */}

@@ -41,7 +41,7 @@ export function Login() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <CardTitle className="text-2xl font-bold">FitGym Pro</CardTitle>
+          <CardTitle className="text-2xl font-bold">Xtreme fitness</CardTitle>
           <CardDescription>
             Connectez-vous à votre espace fitness
           </CardDescription>
