@@ -39,6 +39,8 @@ export function AdminDashboard() {
     instructor: '',
     thumbnail: ''
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoInputType, setVideoInputType] = useState<'url' | 'file'>('url');
 
   useEffect(() => {
     loadData();
@@ -112,6 +114,16 @@ export function AdminDashboard() {
     return levels[userSubscription] >= levels[courseLevel];
   };
 
+  const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setVideoFile(file);
+      // Créer une URL locale pour le fichier
+      const videoUrl = URL.createObjectURL(file);
+      setNewCourse({...newCourse, videoUrl});
+    }
+  };
+
   const handleCreateCourse = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -146,6 +158,8 @@ export function AdminDashboard() {
       instructor: '',
       thumbnail: ''
     });
+    setVideoFile(null);
+    setVideoInputType('url');
     toast.success('Cours créé avec succès');
   };
 
@@ -429,15 +443,61 @@ export function AdminDashboard() {
                       required
                     />
                   </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="course-video">URL de la vidéo*</Label>
-                    <Input
-                      id="course-video"
-                      value={newCourse.videoUrl}
-                      onChange={(e) => setNewCourse({...newCourse, videoUrl: e.target.value})}
-                      placeholder="https://youtube.com/embed/..."
-                      required
-                    />
+                  <div className="md:col-span-2 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Type de vidéo*</Label>
+                      <div className="flex space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="video-url"
+                            name="videoType"
+                            checked={videoInputType === 'url'}
+                            onChange={() => setVideoInputType('url')}
+                          />
+                          <Label htmlFor="video-url">Lien URL</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            id="video-file"
+                            name="videoType"
+                            checked={videoInputType === 'file'}
+                            onChange={() => setVideoInputType('file')}
+                          />
+                          <Label htmlFor="video-file">Fichier PC</Label>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {videoInputType === 'url' ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="course-video">URL de la vidéo*</Label>
+                        <Input
+                          id="course-video"
+                          value={newCourse.videoUrl}
+                          onChange={(e) => setNewCourse({...newCourse, videoUrl: e.target.value})}
+                          placeholder="https://youtube.com/embed/... ou https://vimeo.com/..."
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="course-video-file">Fichier vidéo*</Label>
+                        <Input
+                          id="course-video-file"
+                          type="file"
+                          accept="video/*"
+                          onChange={handleVideoFileChange}
+                          required
+                        />
+                        {videoFile && (
+                          <p className="text-sm text-muted-foreground">
+                            Fichier sélectionné: {videoFile.name}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Button type="submit" className="bg-gradient-primary">
@@ -525,14 +585,64 @@ export function AdminDashboard() {
                         required
                       />
                     </div>
-                    <div className="md:col-span-2 space-y-2">
-                      <Label htmlFor="edit-video">URL de la vidéo</Label>
-                      <Input
-                        id="edit-video"
-                        value={editingCourse.videoUrl}
-                        onChange={(e) => setEditingCourse({...editingCourse, videoUrl: e.target.value})}
-                        required
-                      />
+                    <div className="md:col-span-2 space-y-4">
+                      <div className="space-y-2">
+                        <Label>Type de vidéo*</Label>
+                        <div className="flex space-x-4">
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="edit-video-url"
+                              name="editVideoType"
+                              checked={videoInputType === 'url'}
+                              onChange={() => setVideoInputType('url')}
+                            />
+                            <Label htmlFor="edit-video-url">Lien URL</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="edit-video-file"
+                              name="editVideoType"
+                              checked={videoInputType === 'file'}
+                              onChange={() => setVideoInputType('file')}
+                            />
+                            <Label htmlFor="edit-video-file">Fichier PC</Label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {videoInputType === 'url' ? (
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-video">URL de la vidéo*</Label>
+                          <Input
+                            id="edit-video"
+                            value={editingCourse.videoUrl}
+                            onChange={(e) => setEditingCourse({...editingCourse, videoUrl: e.target.value})}
+                            placeholder="https://youtube.com/embed/... ou https://vimeo.com/..."
+                            required
+                          />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label htmlFor="edit-video-file">Nouveau fichier vidéo</Label>
+                          <Input
+                            id="edit-video-file"
+                            type="file"
+                            accept="video/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const videoUrl = URL.createObjectURL(file);
+                                setEditingCourse({...editingCourse, videoUrl});
+                              }
+                            }}
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Laissez vide pour garder la vidéo actuelle
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div className="md:col-span-2 flex space-x-2">
                       <Button type="submit" className="bg-gradient-primary">
