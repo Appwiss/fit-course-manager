@@ -18,6 +18,7 @@ export function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   
   // Formulaire nouvel utilisateur
   const [newUser, setNewUser] = useState({
@@ -25,6 +26,18 @@ export function AdminDashboard() {
     password: '',
     email: '',
     subscription: 'debutant' as SubscriptionType
+  });
+
+  // Formulaire nouveau cours
+  const [newCourse, setNewCourse] = useState({
+    title: '',
+    description: '',
+    videoUrl: '',
+    level: 'debutant' as SubscriptionType,
+    category: '',
+    duration: 30,
+    instructor: '',
+    thumbnail: ''
   });
 
   useEffect(() => {
@@ -97,6 +110,66 @@ export function AdminDashboard() {
   const canAccessBySubscription = (userSubscription: SubscriptionType, courseLevel: SubscriptionType) => {
     const levels = { debutant: 1, medium: 2, expert: 3 };
     return levels[userSubscription] >= levels[courseLevel];
+  };
+
+  const handleCreateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newCourse.title || !newCourse.description || !newCourse.videoUrl || !newCourse.category || !newCourse.instructor) {
+      toast.error('Tous les champs obligatoires doivent être remplis');
+      return;
+    }
+
+    const course: Course = {
+      id: `course-${Date.now()}`,
+      title: newCourse.title,
+      description: newCourse.description,
+      videoUrl: newCourse.videoUrl,
+      level: newCourse.level,
+      category: newCourse.category,
+      duration: newCourse.duration,
+      instructor: newCourse.instructor,
+      thumbnail: newCourse.thumbnail || undefined
+    };
+
+    const courses = LocalStorageService.getCourses();
+    courses.push(course);
+    LocalStorageService.saveCourses(courses);
+    loadData();
+    setNewCourse({
+      title: '',
+      description: '',
+      videoUrl: '',
+      level: 'debutant',
+      category: '',
+      duration: 30,
+      instructor: '',
+      thumbnail: ''
+    });
+    toast.success('Cours créé avec succès');
+  };
+
+  const handleUpdateCourse = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingCourse) return;
+
+    const courses = LocalStorageService.getCourses();
+    const index = courses.findIndex(c => c.id === editingCourse.id);
+    if (index !== -1) {
+      courses[index] = editingCourse;
+      LocalStorageService.saveCourses(courses);
+      loadData();
+      setEditingCourse(null);
+      toast.success('Cours modifié avec succès');
+    }
+  };
+
+  const handleDeleteCourse = (courseId: string) => {
+    const courses = LocalStorageService.getCourses().filter(c => c.id !== courseId);
+    LocalStorageService.saveCourses(courses);
+    loadData();
+    toast.success('Cours supprimé');
   };
 
   return (
@@ -275,6 +348,206 @@ export function AdminDashboard() {
 
           {/* Gestion des cours */}
           <TabsContent value="courses" className="space-y-6">
+            {/* Formulaire création cours */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Créer un nouveau cours</CardTitle>
+                <CardDescription>Ajoutez un nouveau cours à votre salle de sport</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCreateCourse} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="course-title">Titre du cours*</Label>
+                    <Input
+                      id="course-title"
+                      value={newCourse.title}
+                      onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                      placeholder="Nom du cours"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course-category">Catégorie*</Label>
+                    <Input
+                      id="course-category"
+                      value={newCourse.category}
+                      onChange={(e) => setNewCourse({...newCourse, category: e.target.value})}
+                      placeholder="Cardio, Musculation, Yoga..."
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course-instructor">Instructeur*</Label>
+                    <Input
+                      id="course-instructor"
+                      value={newCourse.instructor}
+                      onChange={(e) => setNewCourse({...newCourse, instructor: e.target.value})}
+                      placeholder="Nom de l'instructeur"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course-duration">Durée (minutes)</Label>
+                    <Input
+                      id="course-duration"
+                      type="number"
+                      value={newCourse.duration}
+                      onChange={(e) => setNewCourse({...newCourse, duration: parseInt(e.target.value) || 30})}
+                      min="5"
+                      max="180"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course-level">Niveau requis</Label>
+                    <Select value={newCourse.level} onValueChange={(value: SubscriptionType) => setNewCourse({...newCourse, level: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="debutant">Débutant</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="expert">Expert</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="course-thumbnail">Image (URL)</Label>
+                    <Input
+                      id="course-thumbnail"
+                      value={newCourse.thumbnail}
+                      onChange={(e) => setNewCourse({...newCourse, thumbnail: e.target.value})}
+                      placeholder="https://exemple.com/image.jpg"
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="course-description">Description*</Label>
+                    <Input
+                      id="course-description"
+                      value={newCourse.description}
+                      onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                      placeholder="Description du cours..."
+                      required
+                    />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="course-video">URL de la vidéo*</Label>
+                    <Input
+                      id="course-video"
+                      value={newCourse.videoUrl}
+                      onChange={(e) => setNewCourse({...newCourse, videoUrl: e.target.value})}
+                      placeholder="https://youtube.com/embed/..."
+                      required
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Button type="submit" className="bg-gradient-primary">
+                      Créer le cours
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Formulaire modification cours */}
+            {editingCourse && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Modifier le cours</CardTitle>
+                  <CardDescription>Modifiez les informations du cours sélectionné</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleUpdateCourse} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-title">Titre du cours</Label>
+                      <Input
+                        id="edit-title"
+                        value={editingCourse.title}
+                        onChange={(e) => setEditingCourse({...editingCourse, title: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-category">Catégorie</Label>
+                      <Input
+                        id="edit-category"
+                        value={editingCourse.category}
+                        onChange={(e) => setEditingCourse({...editingCourse, category: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-instructor">Instructeur</Label>
+                      <Input
+                        id="edit-instructor"
+                        value={editingCourse.instructor}
+                        onChange={(e) => setEditingCourse({...editingCourse, instructor: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-duration">Durée (minutes)</Label>
+                      <Input
+                        id="edit-duration"
+                        type="number"
+                        value={editingCourse.duration}
+                        onChange={(e) => setEditingCourse({...editingCourse, duration: parseInt(e.target.value) || 30})}
+                        min="5"
+                        max="180"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-level">Niveau requis</Label>
+                      <Select value={editingCourse.level} onValueChange={(value: SubscriptionType) => setEditingCourse({...editingCourse, level: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="debutant">Débutant</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="expert">Expert</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-thumbnail">Image (URL)</Label>
+                      <Input
+                        id="edit-thumbnail"
+                        value={editingCourse.thumbnail || ''}
+                        onChange={(e) => setEditingCourse({...editingCourse, thumbnail: e.target.value})}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Input
+                        id="edit-description"
+                        value={editingCourse.description}
+                        onChange={(e) => setEditingCourse({...editingCourse, description: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="edit-video">URL de la vidéo</Label>
+                      <Input
+                        id="edit-video"
+                        value={editingCourse.videoUrl}
+                        onChange={(e) => setEditingCourse({...editingCourse, videoUrl: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex space-x-2">
+                      <Button type="submit" className="bg-gradient-primary">
+                        Sauvegarder
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setEditingCourse(null)}>
+                        Annuler
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Liste des cours */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {courses.map((course) => (
                 <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -299,9 +572,27 @@ export function AdminDashboard() {
                   <CardContent className="p-4">
                     <h3 className="font-semibold mb-2">{course.title}</h3>
                     <p className="text-sm text-muted-foreground mb-3">{course.description}</p>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm mb-3">
                       <span className="text-muted-foreground">{course.instructor}</span>
                       <Badge variant="outline">{course.duration} min</Badge>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setEditingCourse(course)}
+                        className="flex-1"
+                      >
+                        Modifier
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeleteCourse(course.id)}
+                        className="flex-1"
+                      >
+                        Supprimer
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
