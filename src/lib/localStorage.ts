@@ -1,10 +1,12 @@
-import { User, Course, UserCourseAccess } from '@/types/fitness';
+import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription } from '@/types/fitness';
 
 const STORAGE_KEYS = {
   USERS: 'fitness_app_users',
   COURSES: 'fitness_app_courses',
   COURSE_ACCESS: 'fitness_app_course_access',
-  CURRENT_USER: 'fitness_app_current_user'
+  CURRENT_USER: 'fitness_app_current_user',
+  SUBSCRIPTION_PLANS: 'fitness_app_subscription_plans',
+  USER_SUBSCRIPTIONS: 'fitness_app_user_subscriptions'
 };
 
 // Utilisateurs par défaut
@@ -18,6 +20,37 @@ const defaultUsers: User[] = [
     isAdmin: true,
     accessibleCourses: [],
     createdAt: new Date().toISOString()
+  }
+];
+
+// Plans d'abonnement par défaut
+const defaultSubscriptionPlans: SubscriptionPlan[] = [
+  {
+    id: 'plan-debutant',
+    name: 'Plan Débutant',
+    level: 'debutant',
+    monthlyPrice: 19.99,
+    annualPrice: 199.99,
+    features: ['Accès aux cours débutants', 'Support email', 'Suivi des progrès'],
+    appAccess: false
+  },
+  {
+    id: 'plan-medium',
+    name: 'Plan Medium',
+    level: 'medium',
+    monthlyPrice: 29.99,
+    annualPrice: 299.99,
+    features: ['Accès aux cours débutants et medium', 'Support prioritaire', 'Suivi avancé', 'Plans nutrition'],
+    appAccess: false
+  },
+  {
+    id: 'plan-expert',
+    name: 'Plan Expert',
+    level: 'expert',
+    monthlyPrice: 39.99,
+    annualPrice: 399.99,
+    features: ['Accès à tous les cours', 'Support VIP', 'Coaching personnalisé', 'Plans nutrition premium'],
+    appAccess: false
   }
 ];
 
@@ -102,6 +135,12 @@ export class LocalStorageService {
     }
     if (!localStorage.getItem(STORAGE_KEYS.COURSE_ACCESS)) {
       localStorage.setItem(STORAGE_KEYS.COURSE_ACCESS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.SUBSCRIPTION_PLANS)) {
+      localStorage.setItem(STORAGE_KEYS.SUBSCRIPTION_PLANS, JSON.stringify(defaultSubscriptionPlans));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.USER_SUBSCRIPTIONS)) {
+      localStorage.setItem(STORAGE_KEYS.USER_SUBSCRIPTIONS, JSON.stringify([]));
     }
   }
 
@@ -226,5 +265,52 @@ export class LocalStorageService {
 
   static logout() {
     this.setCurrentUser(null);
+  }
+
+  // Gestion des plans d'abonnement
+  static getSubscriptionPlans(): SubscriptionPlan[] {
+    const plans = localStorage.getItem(STORAGE_KEYS.SUBSCRIPTION_PLANS);
+    return plans ? JSON.parse(plans) : [];
+  }
+
+  static saveSubscriptionPlans(plans: SubscriptionPlan[]) {
+    localStorage.setItem(STORAGE_KEYS.SUBSCRIPTION_PLANS, JSON.stringify(plans));
+  }
+
+  // Gestion des abonnements utilisateurs
+  static getUserSubscriptions(): UserSubscription[] {
+    const subscriptions = localStorage.getItem(STORAGE_KEYS.USER_SUBSCRIPTIONS);
+    return subscriptions ? JSON.parse(subscriptions) : [];
+  }
+
+  static saveUserSubscriptions(subscriptions: UserSubscription[]) {
+    localStorage.setItem(STORAGE_KEYS.USER_SUBSCRIPTIONS, JSON.stringify(subscriptions));
+  }
+
+  static getUserSubscription(userId: string): UserSubscription | null {
+    const subscriptions = this.getUserSubscriptions();
+    return subscriptions.find(s => s.userId === userId && s.status === 'active') || null;
+  }
+
+  static createSubscription(subscription: UserSubscription) {
+    const subscriptions = this.getUserSubscriptions();
+    
+    // Désactiver l'ancien abonnement s'il existe
+    const existingIndex = subscriptions.findIndex(s => s.userId === subscription.userId && s.status === 'active');
+    if (existingIndex !== -1) {
+      subscriptions[existingIndex].status = 'cancelled';
+    }
+    
+    subscriptions.push(subscription);
+    this.saveUserSubscriptions(subscriptions);
+  }
+
+  static cancelSubscription(userId: string) {
+    const subscriptions = this.getUserSubscriptions();
+    const subscription = subscriptions.find(s => s.userId === userId && s.status === 'active');
+    if (subscription) {
+      subscription.status = 'cancelled';
+      this.saveUserSubscriptions(subscriptions);
+    }
   }
 }

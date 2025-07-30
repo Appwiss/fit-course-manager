@@ -1,4 +1,26 @@
 export type SubscriptionType = 'debutant' | 'medium' | 'expert';
+export type PaymentInterval = 'mensuel' | 'annuel';
+
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  level: SubscriptionType;
+  monthlyPrice: number;
+  annualPrice: number;
+  features: string[];
+  appAccess: boolean;
+}
+
+export interface UserSubscription {
+  userId: string;
+  planId: string;
+  interval: PaymentInterval;
+  appAccess: boolean;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'expired' | 'cancelled';
+  paymentMethod: string;
+}
 
 export interface User {
   id: string;

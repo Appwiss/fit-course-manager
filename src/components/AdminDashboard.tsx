@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionBadge } from '@/components/ui/subscription-badge';
 import { Header } from '@/components/ui/header';
+import { SubscriptionManager } from '@/components/SubscriptionManager';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -203,10 +204,11 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Utilisateurs ({users.filter(u => !u.isAdmin).length})</TabsTrigger>
             <TabsTrigger value="courses">Cours ({courses.length})</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
+            <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
           </TabsList>
 
           {/* Gestion des utilisateurs */}
@@ -815,6 +817,21 @@ export function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Abonnements */}
+          <TabsContent value="subscriptions" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Gestion des Abonnements</CardTitle>
+                <CardDescription>
+                  Gérez les plans d'abonnement et les paiements (simulation locale)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SubscriptionManager />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
