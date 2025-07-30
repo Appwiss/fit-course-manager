@@ -20,6 +20,8 @@ export function AdminDashboard() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [showCreateCourse, setShowCreateCourse] = useState(false);
   
   // Formulaire nouvel utilisateur
   const [newUser, setNewUser] = useState({
@@ -81,6 +83,7 @@ export function AdminDashboard() {
     LocalStorageService.addUser(user);
     loadData();
     setNewUser({ username: '', password: '', email: '', subscription: 'debutant' });
+    setShowCreateUser(false);
     toast.success('Utilisateur créé avec succès');
   };
 
@@ -161,6 +164,7 @@ export function AdminDashboard() {
     });
     setVideoFile(null);
     setVideoInputType('url');
+    setShowCreateCourse(false);
     toast.success('Cours créé avec succès');
   };
 
@@ -207,66 +211,75 @@ export function AdminDashboard() {
 
           {/* Gestion des utilisateurs */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Créer un nouvel utilisateur</CardTitle>
-                <CardDescription>Ajoutez un nouveau client à la salle de sport</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Nom d'utilisateur</Label>
-                    <Input
-                      id="username"
-                      value={newUser.username}
-                      onChange={(e) => setNewUser({...newUser, username: e.target.value})}
-                      placeholder="johndoe"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newUser.email}
-                      onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                      placeholder="john@exemple.com"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Mot de passe</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                      placeholder="********"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subscription">Abonnement</Label>
-                    <Select value={newUser.subscription} onValueChange={(value: SubscriptionType) => setNewUser({...newUser, subscription: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="debutant">Débutant</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2 lg:col-span-4">
-                    <Button type="submit" className="bg-gradient-primary">
-                      Créer l'utilisateur
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Gestion des utilisateurs</h2>
+              <Button onClick={() => setShowCreateUser(!showCreateUser)} className="bg-gradient-primary">
+                {showCreateUser ? 'Annuler' : 'Créer un utilisateur'}
+              </Button>
+            </div>
+
+            {showCreateUser && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Créer un nouvel utilisateur</CardTitle>
+                  <CardDescription>Ajoutez un nouveau client à la salle de sport</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="username">Nom d'utilisateur</Label>
+                      <Input
+                        id="username"
+                        value={newUser.username}
+                        onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                        placeholder="johndoe"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newUser.email}
+                        onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                        placeholder="john@exemple.com"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Mot de passe</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={newUser.password}
+                        onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                        placeholder="********"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="subscription">Abonnement</Label>
+                      <Select value={newUser.subscription} onValueChange={(value: SubscriptionType) => setNewUser({...newUser, subscription: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="debutant">Débutant</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="expert">Expert</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-2 lg:col-span-4">
+                      <Button type="submit" className="bg-gradient-primary">
+                        Créer l'utilisateur
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Liste des utilisateurs */}
             <div className="grid gap-4">
@@ -349,151 +362,162 @@ export function AdminDashboard() {
 
           {/* Gestion des cours */}
           <TabsContent value="courses" className="space-y-6">
-            {/* Formulaire création cours */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Créer un nouveau cours</CardTitle>
-                <CardDescription>Ajoutez un nouveau cours à votre salle de sport</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleCreateCourse} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="course-title">Titre du cours*</Label>
-                    <Input
-                      id="course-title"
-                      value={newCourse.title}
-                      onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
-                      placeholder="Nom du cours"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course-category">Catégorie*</Label>
-                    <Input
-                      id="course-category"
-                      value={newCourse.category}
-                      onChange={(e) => setNewCourse({...newCourse, category: e.target.value})}
-                      placeholder="Cardio, Musculation, Yoga..."
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course-instructor">Instructeur*</Label>
-                    <Input
-                      id="course-instructor"
-                      value={newCourse.instructor}
-                      onChange={(e) => setNewCourse({...newCourse, instructor: e.target.value})}
-                      placeholder="Nom de l'instructeur"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course-duration">Durée (minutes)</Label>
-                    <Input
-                      id="course-duration"
-                      type="number"
-                      value={newCourse.duration}
-                      onChange={(e) => setNewCourse({...newCourse, duration: parseInt(e.target.value) || 30})}
-                      min="5"
-                      max="180"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course-level">Niveau requis</Label>
-                    <Select value={newCourse.level} onValueChange={(value: SubscriptionType) => setNewCourse({...newCourse, level: value})}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="debutant">Débutant</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="expert">Expert</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="course-thumbnail">Image (URL)</Label>
-                    <Input
-                      id="course-thumbnail"
-                      value={newCourse.thumbnail}
-                      onChange={(e) => setNewCourse({...newCourse, thumbnail: e.target.value})}
-                      placeholder="https://exemple.com/image.jpg"
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="course-description">Description*</Label>
-                    <Input
-                      id="course-description"
-                      value={newCourse.description}
-                      onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
-                      placeholder="Description du cours..."
-                      required
-                    />
-                  </div>
-                  <div className="md:col-span-2 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Gestion des cours</h2>
+              <Button onClick={() => setShowCreateCourse(!showCreateCourse)} className="bg-gradient-primary">
+                {showCreateCourse ? 'Annuler' : 'Créer un cours'}
+              </Button>
+            </div>
+
+            {showCreateCourse && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Créer un nouveau cours</CardTitle>
+                  <CardDescription>Ajoutez un nouveau cours à votre salle de sport (un cours = un niveau + une catégorie)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleCreateCourse} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
+                      <Label htmlFor="course-title">Titre du cours*</Label>
+                      <Input
+                        id="course-title"
+                        value={newCourse.title}
+                        onChange={(e) => setNewCourse({...newCourse, title: e.target.value})}
+                        placeholder="Nom du cours"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="course-category">Catégorie*</Label>
+                      <Input
+                        id="course-category"
+                        value={newCourse.category}
+                        onChange={(e) => setNewCourse({...newCourse, category: e.target.value})}
+                        placeholder="Cardio, Musculation, Yoga..."
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="course-instructor">Instructeur*</Label>
+                      <Input
+                        id="course-instructor"
+                        value={newCourse.instructor}
+                        onChange={(e) => setNewCourse({...newCourse, instructor: e.target.value})}
+                        placeholder="Nom de l'instructeur"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="course-duration">Durée (minutes)</Label>
+                      <Input
+                        id="course-duration"
+                        type="number"
+                        value={newCourse.duration}
+                        onChange={(e) => setNewCourse({...newCourse, duration: parseInt(e.target.value) || 30})}
+                        min="5"
+                        max="180"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="course-level">Niveau requis*</Label>
+                      <Select value={newCourse.level} onValueChange={(value: SubscriptionType) => setNewCourse({...newCourse, level: value})}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="debutant">Débutant</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="expert">Expert</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="course-thumbnail">Image (URL)</Label>
+                      <Input
+                        id="course-thumbnail"
+                        value={newCourse.thumbnail}
+                        onChange={(e) => setNewCourse({...newCourse, thumbnail: e.target.value})}
+                        placeholder="https://exemple.com/image.jpg"
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="course-description">Description*</Label>
+                      <Input
+                        id="course-description"
+                        value={newCourse.description}
+                        onChange={(e) => setNewCourse({...newCourse, description: e.target.value})}
+                        placeholder="Description du cours"
+                        required
+                      />
+                    </div>
+
+                    {/* Section vidéo */}
+                    <div className="md:col-span-2 space-y-4">
                       <Label>Type de vidéo*</Label>
                       <div className="flex space-x-4">
-                        <div className="flex items-center space-x-2">
+                        <label className="flex items-center space-x-2">
                           <input
                             type="radio"
-                            id="video-url"
                             name="videoType"
+                            value="url"
                             checked={videoInputType === 'url'}
                             onChange={() => setVideoInputType('url')}
+                            className="text-primary"
                           />
-                          <Label htmlFor="video-url">Lien URL</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
+                          <span>Lien URL</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
                           <input
                             type="radio"
-                            id="video-file"
                             name="videoType"
+                            value="file"
                             checked={videoInputType === 'file'}
                             onChange={() => setVideoInputType('file')}
+                            className="text-primary"
                           />
-                          <Label htmlFor="video-file">Fichier PC</Label>
+                          <span>Fichier local</span>
+                        </label>
+                      </div>
+
+                      {videoInputType === 'url' ? (
+                        <div className="space-y-2">
+                          <Label htmlFor="course-video-url">URL de la vidéo*</Label>
+                          <Input
+                            id="course-video-url"
+                            value={newCourse.videoUrl}
+                            onChange={(e) => setNewCourse({...newCourse, videoUrl: e.target.value})}
+                            placeholder="https://youtube.com/watch?v=..."
+                            required
+                          />
                         </div>
-                      </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label htmlFor="course-video-file">Fichier vidéo*</Label>
+                          <Input
+                            id="course-video-file"
+                            type="file"
+                            accept="video/*"
+                            onChange={handleVideoFileChange}
+                            required
+                          />
+                          {videoFile && (
+                            <p className="text-sm text-muted-foreground">
+                              Fichier sélectionné: {videoFile.name}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    
-                    {videoInputType === 'url' ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="course-video">URL de la vidéo*</Label>
-                        <Input
-                          id="course-video"
-                          value={newCourse.videoUrl}
-                          onChange={(e) => setNewCourse({...newCourse, videoUrl: e.target.value})}
-                          placeholder="https://youtube.com/embed/... ou https://vimeo.com/..."
-                          required
-                        />
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="course-video-file">Fichier vidéo*</Label>
-                        <Input
-                          id="course-video-file"
-                          type="file"
-                          accept="video/*"
-                          onChange={handleVideoFileChange}
-                          required
-                        />
-                        {videoFile && (
-                          <p className="text-sm text-muted-foreground">
-                            Fichier sélectionné: {videoFile.name}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div className="md:col-span-2">
-                    <Button type="submit" className="bg-gradient-primary">
-                      Créer le cours
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+
+                    <div className="md:col-span-2">
+                      <Button type="submit" className="bg-gradient-primary">
+                        Créer le cours
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Formulaire modification cours */}
             {editingCourse && (
@@ -699,61 +723,98 @@ export function AdminDashboard() {
 
           {/* Permissions */}
           <TabsContent value="permissions" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Matrice des permissions</CardTitle>
-                <CardDescription>Vue d'ensemble des accès aux cours par utilisateur</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-2">Utilisateur</th>
-                        {courses.map((course) => (
-                          <th key={course.id} className="text-center p-2 min-w-[120px]">
-                            <div className="space-y-1">
-                              <div className="font-medium text-xs">{course.title}</div>
-                              <SubscriptionBadge type={course.level} />
-                            </div>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.filter(u => !u.isAdmin).map((user) => (
-                        <tr key={user.id} className="border-b hover:bg-muted/20">
-                          <td className="p-2">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium">{user.username}</span>
-                              <SubscriptionBadge type={user.subscription} />
-                            </div>
-                          </td>
-                          {courses.map((course) => {
-                            const hasAccess = getUserCourseAccess(user.id, course.id);
-                            const canAccessByLevel = canAccessBySubscription(user.subscription, course.level);
-                            
-                            return (
-                              <td key={course.id} className="p-2 text-center">
-                                <div className="space-y-1">
-                                  <Switch
-                                    checked={hasAccess}
-                                    onCheckedChange={() => handleToggleCourseAccess(user.id, course.id, hasAccess)}
-                                  />
-                                  {canAccessByLevel && (
-                                    <div className="text-xs text-success">Auto</div>
-                                  )}
+            <div className="grid gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Matrice des permissions fluide</CardTitle>
+                  <CardDescription>Gestion des accès par utilisateur - Niveau autorisé et catégories correspondantes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {users.filter(u => !u.isAdmin).map((user) => {
+                      // Organiser les cours par catégorie
+                      const coursesByCategory = courses.reduce((acc, course) => {
+                        if (!acc[course.category]) {
+                          acc[course.category] = [];
+                        }
+                        acc[course.category].push(course);
+                        return acc;
+                      }, {} as Record<string, Course[]>);
+
+                      return (
+                        <Card key={user.id} className="border-l-4 border-l-primary">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 bg-gradient-secondary rounded-full flex items-center justify-center">
+                                  <span className="text-secondary-foreground font-semibold text-sm">
+                                    {user.username.charAt(0).toUpperCase()}
+                                  </span>
                                 </div>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+                                <div>
+                                  <h3 className="font-semibold text-lg">{user.username}</h3>
+                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="mb-2">
+                                  <Label className="text-sm font-medium">Niveau autorisé:</Label>
+                                  <div className="mt-1">
+                                    <SubscriptionBadge type={user.subscription} />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <h4 className="font-medium text-muted-foreground">Catégories et cours autorisés:</h4>
+                              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                {Object.entries(coursesByCategory).map(([category, categoryCourses]) => (
+                                  <Card key={category} className="border border-border/50">
+                                    <CardContent className="p-4">
+                                      <h5 className="font-semibold mb-3 text-primary">{category}</h5>
+                                      <div className="space-y-2">
+                                        {categoryCourses.map((course) => {
+                                          const hasAccess = getUserCourseAccess(user.id, course.id);
+                                          const canAccessByLevel = canAccessBySubscription(user.subscription, course.level);
+                                          
+                                          return (
+                                            <div key={course.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                                              <div className="flex items-center space-x-2">
+                                                <SubscriptionBadge type={course.level} />
+                                                <div>
+                                                  <p className="font-medium text-sm">{course.title}</p>
+                                                  <p className="text-xs text-muted-foreground">{course.duration}min</p>
+                                                </div>
+                                              </div>
+                                              <div className="flex items-center space-x-2">
+                                                {canAccessByLevel && (
+                                                  <Badge variant="outline" className="text-xs text-success bg-success/10">
+                                                    Auto
+                                                  </Badge>
+                                                )}
+                                                <Switch
+                                                  checked={hasAccess}
+                                                  onCheckedChange={() => handleToggleCourseAccess(user.id, course.id, hasAccess)}
+                                                />
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
