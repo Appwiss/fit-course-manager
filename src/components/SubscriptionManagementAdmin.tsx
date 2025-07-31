@@ -433,15 +433,51 @@ export function SubscriptionManagementAdmin() {
                   return (
                     <Card key={user.id}>
                       <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h3 className="font-medium">{user.username}</h3>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-medium">{user.username}</h3>
+                              {getStatusBadge(user.accountStatus)}
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">{user.email}</p>
+                            
                             {plan && subscription && (
-                              <p className="text-sm">
-                                Plan: {plan.name} - {subscription.interval}
-                                {subscription.appAccess && " + App"}
-                              </p>
+                              <div className="space-y-2">
+                                <div className="flex gap-2 items-center">
+                                  <Badge variant="outline">
+                                    {plan.name} - {subscription.interval}
+                                  </Badge>
+                                  {subscription.appAccess && (
+                                    <Badge variant="secondary">Accès App</Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm space-y-1 bg-muted/30 p-3 rounded-md">
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Début:</span>
+                                    <span className="font-medium">{new Date(subscription.startDate).toLocaleDateString('fr-FR')}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Fin:</span>
+                                    <span className={`font-medium ${new Date(subscription.endDate) < new Date() ? 'text-red-600' : 'text-green-600'}`}>
+                                      {new Date(subscription.endDate).toLocaleDateString('fr-FR')}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Prochain paiement:</span>
+                                    <span className={`font-medium ${new Date(subscription.nextPaymentDate) < new Date() ? 'text-orange-600' : ''}`}>
+                                      {new Date(subscription.nextPaymentDate).toLocaleDateString('fr-FR')}
+                                    </span>
+                                  </div>
+                                  {subscription.overdueDate && (
+                                    <div className="flex justify-between">
+                                      <span className="text-muted-foreground">En retard depuis:</span>
+                                      <span className="text-red-600 font-medium">
+                                        {new Date(subscription.overdueDate).toLocaleDateString('fr-FR')}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             )}
                           </div>
                           <div className="flex items-center gap-2">
