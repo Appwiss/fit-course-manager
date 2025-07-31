@@ -80,6 +80,7 @@ export function SubscriptionManager() {
       appAccess,
       startDate: new Date().toISOString(),
       endDate: endDate.toISOString(),
+      nextPaymentDate: endDate.toISOString(),
       status: 'active',
       paymentMethod: 'simulation_locale'
     };

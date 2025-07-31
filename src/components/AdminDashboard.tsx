@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { SubscriptionBadge } from '@/components/ui/subscription-badge';
 import { Header } from '@/components/ui/header';
-import { SubscriptionManager } from '@/components/SubscriptionManager';
+import { SubscriptionManagementAdmin } from '@/components/SubscriptionManagementAdmin';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -78,7 +78,8 @@ export function AdminDashboard() {
       subscription: newUser.subscription,
       isAdmin: false,
       accessibleCourses: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      accountStatus: 'active'
     };
 
     LocalStorageService.addUser(user);
@@ -208,7 +209,7 @@ export function AdminDashboard() {
             <TabsTrigger value="users">Utilisateurs ({users.filter(u => !u.isAdmin).length})</TabsTrigger>
             <TabsTrigger value="courses">Cours ({courses.length})</TabsTrigger>
             <TabsTrigger value="permissions">Permissions</TabsTrigger>
-            <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+            <TabsTrigger value="subscriptions">Gestion Abonnements</TabsTrigger>
           </TabsList>
 
           {/* Gestion des utilisateurs */}
@@ -829,7 +830,7 @@ export function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <SubscriptionManager />
+                <SubscriptionManagementAdmin />
               </CardContent>
             </Card>
           </TabsContent>

@@ -29,6 +29,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (username: string, password: string): boolean => {
     const user = LocalStorageService.authenticate(username, password);
     if (user) {
+      // Vérifier si le compte n'est pas désactivé ou annulé (sauf pour les admins)
+      if (!user.isAdmin && (user.accountStatus === 'disabled' || user.accountStatus === 'cancelled')) {
+        return false;
+      }
       setCurrentUser(user);
       return true;
     }

@@ -18,8 +18,10 @@ export interface UserSubscription {
   appAccess: boolean;
   startDate: string;
   endDate: string;
-  status: 'active' | 'expired' | 'cancelled';
+  status: 'active' | 'expired' | 'cancelled' | 'overdue';
   paymentMethod: string;
+  nextPaymentDate: string;
+  overdueDate?: string;
 }
 
 export interface User {
@@ -31,6 +33,8 @@ export interface User {
   isAdmin: boolean;
   accessibleCourses: string[];
   createdAt: string;
+  accountStatus: 'active' | 'disabled' | 'cancelled';
+  disabledReason?: 'payment_overdue' | 'admin_action';
 }
 
 export interface Course {

@@ -1,4 +1,4 @@
-import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription } from '@/types/fitness';
+import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription, PaymentInterval } from '@/types/fitness';
 
 const STORAGE_KEYS = {
   USERS: 'fitness_app_users',
@@ -19,7 +19,8 @@ const defaultUsers: User[] = [
     subscription: 'expert',
     isAdmin: true,
     accessibleCourses: [],
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    accountStatus: 'active'
   }
 ];
 
@@ -289,7 +290,143 @@ export class LocalStorageService {
 
   static getUserSubscription(userId: string): UserSubscription | null {
     const subscriptions = this.getUserSubscriptions();
-    return subscriptions.find(s => s.userId === userId && s.status === 'active') || null;
+    return subscriptions.find(s => s.userId === userId && (s.status === 'active' || s.status === 'overdue')) || null;
+  }
+
+  static addSubscriptionPlan(plan: SubscriptionPlan) {
+    const plans = this.getSubscriptionPlans();
+    plans.push(plan);
+    this.saveSubscriptionPlans(plans);
+  }
+
+  static updateSubscriptionPlan(updatedPlan: SubscriptionPlan) {
+    const plans = this.getSubscriptionPlans();
+    const index = plans.findIndex(p => p.id === updatedPlan.id);
+    if (index !== -1) {
+      plans[index] = updatedPlan;
+      this.saveSubscriptionPlans(plans);
+    }
+  }
+
+  static deleteSubscriptionPlan(planId: string) {
+    const plans = this.getSubscriptionPlans().filter(p => p.id !== planId);
+    this.saveSubscriptionPlans(plans);
+  }
+
+  static assignUserToSubscription(userId: string, planId: string, interval: PaymentInterval, appAccess: boolean) {
+    const user = this.getUsers().find(u => u.id === userId);
+    if (!user) return false;
+
+    const plan = this.getSubscriptionPlans().find(p => p.id === planId);
+    if (!plan) return false;
+
+    const startDate = new Date();
+    const endDate = new Date();
+    const nextPaymentDate = new Date();
+    
+    if (interval === 'mensuel') {
+      endDate.setMonth(endDate.getMonth() + 1);
+      nextPaymentDate.setMonth(nextPaymentDate.getMonth() + 1);
+    } else {
+      endDate.setFullYear(endDate.getFullYear() + 1);
+      nextPaymentDate.setFullYear(nextPaymentDate.getFullYear() + 1);
+    }
+
+    const subscription: UserSubscription = {
+      userId,
+      planId,
+      interval,
+      appAccess,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      nextPaymentDate: nextPaymentDate.toISOString(),
+      status: 'active',
+      paymentMethod: 'admin_assigned'
+    };
+
+    this.createSubscription(subscription);
+
+    // Activer le compte utilisateur
+    user.accountStatus = 'active';
+    user.subscription = plan.level;
+    this.updateUser(user);
+
+    return true;
+  }
+
+  static setSubscriptionOverdue(userId: string) {
+    const subscriptions = this.getUserSubscriptions();
+    const subscription = subscriptions.find(s => s.userId === userId && s.status === 'active');
+    if (subscription) {
+      subscription.status = 'overdue';
+      subscription.overdueDate = new Date().toISOString();
+      this.saveUserSubscriptions(subscriptions);
+
+      // Désactiver le compte utilisateur
+      const users = this.getUsers();
+      const user = users.find(u => u.id === userId);
+      if (user) {
+        user.accountStatus = 'disabled';
+        user.disabledReason = 'payment_overdue';
+        this.saveUsers(users);
+      }
+    }
+  }
+
+  static cancelUserAccount(userId: string) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.accountStatus = 'cancelled';
+      this.saveUsers(users);
+
+      // Annuler l'abonnement
+      this.cancelSubscription(userId);
+    }
+  }
+
+  static reactivateUserAccount(userId: string) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.accountStatus = 'active';
+      user.disabledReason = undefined;
+      this.saveUsers(users);
+
+      // Réactiver l'abonnement si il existe
+      const subscriptions = this.getUserSubscriptions();
+      const subscription = subscriptions.find(s => s.userId === userId && s.status === 'overdue');
+      if (subscription) {
+        subscription.status = 'active';
+        subscription.overdueDate = undefined;
+        // Prolonger la date de fin
+        const endDate = new Date();
+        if (subscription.interval === 'mensuel') {
+          endDate.setMonth(endDate.getMonth() + 1);
+        } else {
+          endDate.setFullYear(endDate.getFullYear() + 1);
+        }
+        subscription.endDate = endDate.toISOString();
+        subscription.nextPaymentDate = endDate.toISOString();
+        this.saveUserSubscriptions(subscriptions);
+      }
+    }
+  }
+
+  static getAccountsKPI() {
+    const users = this.getUsers().filter(u => !u.isAdmin);
+    const overdue = users.filter(u => u.accountStatus === 'disabled' && u.disabledReason === 'payment_overdue');
+    const cancelled = users.filter(u => u.accountStatus === 'cancelled');
+    const active = users.filter(u => u.accountStatus === 'active');
+
+    return {
+      total: users.length,
+      active: active.length,
+      overdue: overdue.length,
+      cancelled: cancelled.length,
+      overdueUsers: overdue,
+      cancelledUsers: cancelled
+    };
   }
 
   static createSubscription(subscription: UserSubscription) {
