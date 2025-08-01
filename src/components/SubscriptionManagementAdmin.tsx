@@ -431,15 +431,15 @@ export function SubscriptionManagementAdmin() {
                   const plan = subscription ? plans.find(p => p.id === subscription.planId) : null;
 
                   return (
-                    <Card key={user.id}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-medium">{user.username}</h3>
-                              {getStatusBadge(user.accountStatus)}
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-3">{user.email}</p>
+                <Card key={user.id}>
+                  <CardContent className="p-4">
+                    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h3 className="font-medium truncate">{user.username}</h3>
+                          {getStatusBadge(user.accountStatus)}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3 truncate">{user.email}</p>
                             
                             {plan && subscription && (
                               <div className="space-y-2">
@@ -480,15 +480,16 @@ export function SubscriptionManagementAdmin() {
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(user.accountStatus)}
+                          <div className="flex flex-wrap gap-2 lg:justify-end">
                             {user.accountStatus === 'active' && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleSetOverdue(user.id)}
+                                className="flex-1 sm:flex-none text-xs sm:text-sm"
                               >
-                                Marquer en retard
+                                <span className="sm:hidden">Retard</span>
+                                <span className="hidden sm:inline">Marquer en retard</span>
                               </Button>
                             )}
                             {user.accountStatus === 'disabled' && (
@@ -497,26 +498,28 @@ export function SubscriptionManagementAdmin() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleReactivateUser(user.id)}
+                                  className="flex-1 sm:flex-none text-xs sm:text-sm"
                                 >
                                   <RefreshCw className="h-4 w-4 mr-1" />
-                                  Réactiver
+                                  <span className="sm:hidden">Réact.</span>
+                                  <span className="hidden sm:inline">Réactiver</span>
                                 </Button>
                                 <AlertDialog>
                                   <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm">
+                                    <Button variant="destructive" size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
                                       Annuler
                                     </Button>
                                   </AlertDialogTrigger>
-                                  <AlertDialogContent>
+                                  <AlertDialogContent className="mx-4">
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Confirmer l'annulation</AlertDialogTitle>
                                       <AlertDialogDescription>
                                         Êtes-vous sûr de vouloir annuler le compte de {user.username} ? Cette action est irréversible.
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>Annuler</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleCancelUser(user.id)}>
+                                    <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                      <AlertDialogCancel className="w-full sm:w-auto">Annuler</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleCancelUser(user.id)} className="w-full sm:w-auto">
                                         Confirmer
                                       </AlertDialogAction>
                                     </AlertDialogFooter>

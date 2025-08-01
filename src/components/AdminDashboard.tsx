@@ -205,19 +205,34 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="users">Utilisateurs ({users.filter(u => !u.isAdmin).length})</TabsTrigger>
-            <TabsTrigger value="courses">Cours ({courses.length})</TabsTrigger>
-            <TabsTrigger value="permissions">Permissions</TabsTrigger>
-            <TabsTrigger value="subscriptions">Gestion Abonnements</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-1">
+            <TabsTrigger value="users" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Utilisateurs</span>
+              <span className="sm:hidden">Users</span>
+              <span className="ml-1">({users.filter(u => !u.isAdmin).length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="courses" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Cours</span>
+              <span className="sm:hidden">Cours</span>
+              <span className="ml-1">({courses.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Permissions</span>
+              <span className="sm:hidden">Perms</span>
+            </TabsTrigger>
+            <TabsTrigger value="subscriptions" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Gestion Abonnements</span>
+              <span className="sm:hidden">Abos</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Gestion des utilisateurs */}
           <TabsContent value="users" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Gestion des utilisateurs</h2>
-              <Button onClick={() => setShowCreateUser(!showCreateUser)} className="bg-gradient-primary">
-                {showCreateUser ? 'Annuler' : 'Créer un utilisateur'}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold">Gestion des utilisateurs</h2>
+              <Button onClick={() => setShowCreateUser(!showCreateUser)} className="bg-gradient-primary w-full sm:w-auto">
+                <span className="sm:hidden">{showCreateUser ? 'Annuler' : 'Créer'}</span>
+                <span className="hidden sm:inline">{showCreateUser ? 'Annuler' : 'Créer un utilisateur'}</span>
               </Button>
             </div>
 
@@ -228,7 +243,7 @@ export function AdminDashboard() {
                   <CardDescription>Ajoutez un nouveau client à la salle de sport</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <form onSubmit={handleCreateUser} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="username">Nom d'utilisateur</Label>
                       <Input
@@ -274,8 +289,8 @@ export function AdminDashboard() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="md:col-span-2 lg:col-span-4">
-                      <Button type="submit" className="bg-gradient-primary">
+                    <div className="sm:col-span-2 lg:col-span-4">
+                      <Button type="submit" className="bg-gradient-primary w-full">
                         Créer l'utilisateur
                       </Button>
                     </div>
@@ -289,27 +304,30 @@ export function AdminDashboard() {
               {users.filter(u => !u.isAdmin).map((user) => (
                 <Card key={user.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center">
+                        <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center flex-shrink-0">
                           <span className="text-secondary-foreground font-semibold">
                             {user.username.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div>
-                          <h3 className="font-semibold">{user.username}</h3>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                          <div className="flex items-center space-x-2 mt-1">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold truncate">{user.username}</h3>
+                          <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
                             <SubscriptionBadge type={user.subscription} />
-                            <Badge variant="outline">{new Date(user.createdAt).toLocaleDateString()}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </Badge>
                           </div>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 flex-shrink-0">
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
+                          className="flex-1 sm:flex-none"
                         >
                           {selectedUser?.id === user.id ? 'Fermer' : 'Gérer'}
                         </Button>
@@ -317,8 +335,10 @@ export function AdminDashboard() {
                           variant="destructive" 
                           size="sm"
                           onClick={() => handleDeleteUser(user.id)}
+                          className="flex-1 sm:flex-none"
                         >
-                          Supprimer
+                          <span className="sm:hidden">Suppr.</span>
+                          <span className="hidden sm:inline">Supprimer</span>
                         </Button>
                       </div>
                     </div>
@@ -365,10 +385,11 @@ export function AdminDashboard() {
 
           {/* Gestion des cours */}
           <TabsContent value="courses" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Gestion des cours</h2>
-              <Button onClick={() => setShowCreateCourse(!showCreateCourse)} className="bg-gradient-primary">
-                {showCreateCourse ? 'Annuler' : 'Créer un cours'}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold">Gestion des cours</h2>
+              <Button onClick={() => setShowCreateCourse(!showCreateCourse)} className="bg-gradient-primary w-full sm:w-auto">
+                <span className="sm:hidden">{showCreateCourse ? 'Annuler' : 'Créer'}</span>
+                <span className="hidden sm:inline">{showCreateCourse ? 'Annuler' : 'Créer un cours'}</span>
               </Button>
             </div>
 

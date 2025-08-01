@@ -115,9 +115,17 @@ export function ClientDashboard() {
         </div>
 
         <Tabs defaultValue="available" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="available">Mes cours ({availableCourses.length})</TabsTrigger>
-            <TabsTrigger value="locked">Cours verrouillés ({lockedCourses.length})</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="available" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Mes cours</span>
+              <span className="sm:hidden">Cours</span>
+              <span className="ml-1">({availableCourses.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="locked" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Cours verrouillés</span>
+              <span className="sm:hidden">Verrouillés</span>
+              <span className="ml-1">({lockedCourses.length})</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* Cours disponibles */}
@@ -128,7 +136,7 @@ export function ClientDashboard() {
                   <span>{category}</span>
                   <Badge variant="outline">{categoryCourses.length} cours</Badge>
                 </h3>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {categoryCourses.map((course) => (
                     <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
                       <div className="aspect-video bg-muted relative overflow-hidden">
@@ -172,10 +180,10 @@ export function ClientDashboard() {
                               Commencer le cours
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4">
                             <DialogHeader>
-                              <DialogTitle className="flex items-center space-x-2">
-                                <span>{selectedCourse?.title}</span>
+                              <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <span className="text-base sm:text-lg">{selectedCourse?.title}</span>
                                 <SubscriptionBadge type={selectedCourse?.level || 'debutant'} />
                               </DialogTitle>
                             </DialogHeader>
@@ -190,25 +198,25 @@ export function ClientDashboard() {
                                     allowFullScreen
                                   />
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
                                     <h4 className="font-semibold mb-2">Description</h4>
-                                    <p className="text-muted-foreground">{selectedCourse.description}</p>
+                                    <p className="text-muted-foreground text-sm">{selectedCourse.description}</p>
                                   </div>
                                   <div className="space-y-2">
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                       <span className="text-sm text-muted-foreground">Instructeur:</span>
-                                      <span className="text-sm font-medium">{selectedCourse.instructor}</span>
+                                      <span className="text-sm font-medium text-right">{selectedCourse.instructor}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                       <span className="text-sm text-muted-foreground">Durée:</span>
-                                      <span className="text-sm font-medium">{selectedCourse.duration} minutes</span>
+                                      <span className="text-sm font-medium">{selectedCourse.duration} min</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                       <span className="text-sm text-muted-foreground">Catégorie:</span>
-                                      <span className="text-sm font-medium">{selectedCourse.category}</span>
+                                      <span className="text-sm font-medium text-right">{selectedCourse.category}</span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                       <span className="text-sm text-muted-foreground">Niveau:</span>
                                       <SubscriptionBadge type={selectedCourse.level} />
                                     </div>
@@ -240,7 +248,7 @@ export function ClientDashboard() {
 
           {/* Cours verrouillés */}
           <TabsContent value="locked" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {lockedCourses.map((course) => (
                 <Card key={course.id} className="overflow-hidden opacity-60 relative">
                   <div className="aspect-video bg-muted relative">
