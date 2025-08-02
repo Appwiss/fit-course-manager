@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Users, CreditCard, AlertTriangle, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import { Plus, Users, CreditCard, AlertTriangle, CheckCircle, XCircle, RefreshCw, Edit, Trash2 } from "lucide-react";
 import { LocalStorageService } from "@/lib/localStorage";
 import { SubscriptionPlan, User, UserSubscription, PaymentInterval, SubscriptionType } from "@/types/fitness";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ export function SubscriptionManagementAdmin() {
   const [kpi, setKpi] = useState<any>(null);
   const [showCreatePlan, setShowCreatePlan] = useState(false);
   const [showAssignUser, setShowAssignUser] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
   const { toast } = useToast();
 
   // États pour création de plan
@@ -146,6 +147,88 @@ export function SubscriptionManagementAdmin() {
     });
   };
 
+  const handleEditPlan = (plan: SubscriptionPlan) => {
+    // Vérifier si le plan est assigné à des utilisateurs
+    const isAssigned = subscriptions.some(s => s.planId === plan.id && (s.status === 'active' || s.status === 'overdue'));
+    
+    if (isAssigned) {
+      toast({
+        title: "Impossible de modifier",
+        description: "Ce plan est assigné à des utilisateurs et ne peut pas être modifié",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setEditingPlan(plan);
+    setNewPlan({
+      name: plan.name,
+      level: plan.level,
+      monthlyPrice: plan.monthlyPrice.toString(),
+      annualPrice: plan.annualPrice.toString(),
+      features: plan.features
+    });
+    setShowCreatePlan(true);
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    // Vérifier si le plan est assigné à des utilisateurs
+    const isAssigned = subscriptions.some(s => s.planId === planId && (s.status === 'active' || s.status === 'overdue'));
+    
+    if (isAssigned) {
+      toast({
+        title: "Impossible de supprimer",
+        description: "Ce plan est assigné à des utilisateurs et ne peut pas être supprimé",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    LocalStorageService.deleteSubscriptionPlan(planId);
+    loadData();
+    toast({
+      title: "Plan supprimé",
+      description: "Le plan d'abonnement a été supprimé avec succès"
+    });
+  };
+
+  const handleUpdatePlan = () => {
+    if (!editingPlan || !newPlan.name || !newPlan.monthlyPrice || !newPlan.annualPrice) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const updatedPlan: SubscriptionPlan = {
+      ...editingPlan,
+      name: newPlan.name,
+      level: newPlan.level,
+      monthlyPrice: parseFloat(newPlan.monthlyPrice),
+      annualPrice: parseFloat(newPlan.annualPrice),
+      features: newPlan.features.filter(f => f.trim() !== '')
+    };
+
+    LocalStorageService.updateSubscriptionPlan(updatedPlan);
+    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''] });
+    setEditingPlan(null);
+    setShowCreatePlan(false);
+    loadData();
+
+    toast({
+      title: "Plan mis à jour",
+      description: "Le plan d'abonnement a été mis à jour avec succès"
+    });
+  };
+
+  const cancelEdit = () => {
+    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''] });
+    setEditingPlan(null);
+    setShowCreatePlan(false);
+  };
+
   const addFeature = () => {
     setNewPlan({ ...newPlan, features: [...newPlan.features, ''] });
   };
@@ -159,6 +242,10 @@ export function SubscriptionManagementAdmin() {
   const removeFeature = (index: number) => {
     const features = newPlan.features.filter((_, i) => i !== index);
     setNewPlan({ ...newPlan, features });
+  };
+
+  const isPlanAssigned = (planId: string) => {
+    return subscriptions.some(s => s.planId === planId && (s.status === 'active' || s.status === 'overdue'));
   };
 
   const getStatusBadge = (status: string) => {
@@ -248,7 +335,7 @@ export function SubscriptionManagementAdmin() {
               {showCreatePlan && (
                 <Card className="mb-4">
                   <CardHeader>
-                    <CardTitle>Nouveau Plan</CardTitle>
+                    <CardTitle>{editingPlan ? 'Modifier le Plan' : 'Nouveau Plan'}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -313,31 +400,83 @@ export function SubscriptionManagementAdmin() {
                       </Button>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleCreatePlan}>Créer le Plan</Button>
-                      <Button variant="outline" onClick={() => setShowCreatePlan(false)}>Annuler</Button>
+                      <Button onClick={editingPlan ? handleUpdatePlan : handleCreatePlan}>
+                        {editingPlan ? 'Mettre à jour' : 'Créer le Plan'}
+                      </Button>
+                      <Button variant="outline" onClick={cancelEdit}>Annuler</Button>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {plans.map((plan) => (
-                  <Card key={plan.id}>
-                    <CardHeader>
-                      <CardTitle>{plan.name}</CardTitle>
-                      <CardDescription>Niveau: {plan.level}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-2xl font-bold">{plan.monthlyPrice}€/mois</p>
-                      <p className="text-lg text-muted-foreground">{plan.annualPrice}€/an</p>
-                      <ul className="mt-2 space-y-1">
-                        {plan.features.map((feature, index) => (
-                          <li key={index} className="text-sm">• {feature}</li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                ))}
+                {plans.map((plan) => {
+                  const isAssigned = isPlanAssigned(plan.id);
+                  
+                  return (
+                    <Card key={plan.id}>
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle>{plan.name}</CardTitle>
+                            <CardDescription>Niveau: {plan.level}</CardDescription>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditPlan(plan)}
+                              disabled={isAssigned}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={isAssigned}
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Supprimer le plan</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Êtes-vous sûr de vouloir supprimer le plan "{plan.name}" ? Cette action est irréversible.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDeletePlan(plan.id)}>
+                                    Supprimer
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-2xl font-bold">{plan.monthlyPrice}€/mois</p>
+                        <p className="text-lg text-muted-foreground">{plan.annualPrice}€/an</p>
+                        <ul className="mt-2 space-y-1">
+                          {plan.features.map((feature, index) => (
+                            <li key={index} className="text-sm">• {feature}</li>
+                          ))}
+                        </ul>
+                        {isAssigned && (
+                          <Badge variant="secondary" className="mt-2">
+                            Plan en cours d'utilisation
+                          </Badge>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
