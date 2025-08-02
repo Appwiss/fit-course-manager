@@ -248,6 +248,10 @@ export function SubscriptionManagementAdmin() {
     return subscriptions.some(s => s.planId === planId && (s.status === 'active' || s.status === 'overdue'));
   };
 
+  const getPlanUsageCount = (planId: string) => {
+    return subscriptions.filter(s => s.planId === planId && (s.status === 'active' || s.status === 'overdue')).length;
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -412,6 +416,7 @@ export function SubscriptionManagementAdmin() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {plans.map((plan) => {
                   const isAssigned = isPlanAssigned(plan.id);
+                  const usageCount = getPlanUsageCount(plan.id);
                   
                   return (
                     <Card key={plan.id}>
@@ -461,18 +466,31 @@ export function SubscriptionManagementAdmin() {
                         </div>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-2xl font-bold">{plan.monthlyPrice}€/mois</p>
-                        <p className="text-lg text-muted-foreground">{plan.annualPrice}€/an</p>
-                        <ul className="mt-2 space-y-1">
-                          {plan.features.map((feature, index) => (
-                            <li key={index} className="text-sm">• {feature}</li>
-                          ))}
-                        </ul>
-                        {isAssigned && (
-                          <Badge variant="secondary" className="mt-2">
-                            Plan en cours d'utilisation
-                          </Badge>
-                        )}
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-2xl font-bold">{plan.monthlyPrice}€/mois</p>
+                            <p className="text-lg text-muted-foreground">{plan.annualPrice}€/an</p>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">
+                              {usageCount} utilisateur{usageCount > 1 ? 's' : ''} assigné{usageCount > 1 ? 's' : ''}
+                            </span>
+                          </div>
+
+                          <ul className="space-y-1">
+                            {plan.features.map((feature, index) => (
+                              <li key={index} className="text-sm">• {feature}</li>
+                            ))}
+                          </ul>
+                          
+                          {isAssigned && (
+                            <Badge variant="secondary" className="mt-2">
+                              Plan en cours d'utilisation
+                            </Badge>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   );
