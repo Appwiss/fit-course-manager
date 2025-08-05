@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { SubscriptionBadge } from '@/components/ui/subscription-badge';
 import { Header } from '@/components/ui/header';
 import { SubscriptionManagementAdmin } from '@/components/SubscriptionManagementAdmin';
+import { ImageInput } from '@/components/ui/image-input';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -455,15 +456,12 @@ export function AdminDashboard() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="course-thumbnail">Image (URL)</Label>
-                      <Input
-                        id="course-thumbnail"
-                        value={newCourse.thumbnail}
-                        onChange={(e) => setNewCourse({...newCourse, thumbnail: e.target.value})}
-                        placeholder="https://exemple.com/image.jpg"
-                      />
-                    </div>
+                    <ImageInput
+                      value={newCourse.thumbnail}
+                      onChange={(value) => setNewCourse({...newCourse, thumbnail: value})}
+                      label="Image du cours"
+                      placeholder="https://exemple.com/image.jpg"
+                    />
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="course-description">Description*</Label>
                       <Input
@@ -603,14 +601,12 @@ export function AdminDashboard() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-thumbnail">Image (URL)</Label>
-                      <Input
-                        id="edit-thumbnail"
-                        value={editingCourse.thumbnail || ''}
-                        onChange={(e) => setEditingCourse({...editingCourse, thumbnail: e.target.value})}
-                      />
-                    </div>
+                    <ImageInput
+                      value={editingCourse.thumbnail || ''}
+                      onChange={(value) => setEditingCourse({...editingCourse, thumbnail: value})}
+                      label="Image du cours"
+                      placeholder="https://exemple.com/image.jpg"
+                    />
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="edit-description">Description</Label>
                       <Input
