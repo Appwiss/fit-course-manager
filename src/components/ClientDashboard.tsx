@@ -25,11 +25,23 @@ export function ClientDashboard() {
   };
 
   const hasCustomAccess = (courseId: string) => {
-    return LocalStorageService.hasAccessToCourse(currentUser!.id, courseId);
+    const courseAccess = LocalStorageService.getCourseAccess();
+    const customAccess = courseAccess.find(
+      access => access.userId === currentUser!.id && access.courseId === courseId && access.overrideSubscription
+    );
+    return customAccess ? customAccess.hasAccess : null;
   };
 
   const canAccessCourse = (course: Course) => {
-    return canAccessBySubscription(currentUser!.subscription, course.level) || hasCustomAccess(course.id);
+    const customAccess = hasCustomAccess(course.id);
+    
+    // Si il y a une permission spéciale, l'utiliser
+    if (customAccess !== null) {
+      return customAccess;
+    }
+    
+    // Sinon, utiliser l'accès par défaut basé sur l'abonnement
+    return canAccessBySubscription(currentUser!.subscription, course.level);
   };
 
   const getAvailableCourses = () => {

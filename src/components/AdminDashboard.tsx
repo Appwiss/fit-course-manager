@@ -12,6 +12,7 @@ import { SubscriptionBadge } from '@/components/ui/subscription-badge';
 import { Header } from '@/components/ui/header';
 import { SubscriptionManagementAdmin } from '@/components/SubscriptionManagementAdmin';
 import { ImageInput } from '@/components/ui/image-input';
+import { CourseAccessManagement } from '@/components/CourseAccessManagement';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -741,100 +742,9 @@ export function AdminDashboard() {
             </div>
           </TabsContent>
 
-          {/* Permissions */}
+          {/* Permissions granulaires */}
           <TabsContent value="permissions" className="space-y-6">
-            <div className="grid gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Matrice des permissions fluide</CardTitle>
-                  <CardDescription>Gestion des accès par utilisateur - Niveau autorisé et catégories correspondantes</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {users.filter(u => !u.isAdmin).map((user) => {
-                      // Organiser les cours par catégorie
-                      const coursesByCategory = courses.reduce((acc, course) => {
-                        if (!acc[course.category]) {
-                          acc[course.category] = [];
-                        }
-                        acc[course.category].push(course);
-                        return acc;
-                      }, {} as Record<string, Course[]>);
-
-                      return (
-                        <Card key={user.id} className="border-l-4 border-l-primary">
-                          <CardContent className="p-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-10 h-10 bg-gradient-secondary rounded-full flex items-center justify-center">
-                                  <span className="text-secondary-foreground font-semibold text-sm">
-                                    {user.username.charAt(0).toUpperCase()}
-                                  </span>
-                                </div>
-                                <div>
-                                  <h3 className="font-semibold text-lg">{user.username}</h3>
-                                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <div className="mb-2">
-                                  <Label className="text-sm font-medium">Niveau autorisé:</Label>
-                                  <div className="mt-1">
-                                    <SubscriptionBadge type={user.subscription} />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h4 className="font-medium text-muted-foreground">Catégories et cours autorisés:</h4>
-                              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {Object.entries(coursesByCategory).map(([category, categoryCourses]) => (
-                                  <Card key={category} className="border border-border/50">
-                                    <CardContent className="p-4">
-                                      <h5 className="font-semibold mb-3 text-primary">{category}</h5>
-                                      <div className="space-y-2">
-                                        {categoryCourses.map((course) => {
-                                          const hasAccess = getUserCourseAccess(user.id, course.id);
-                                          const canAccessByLevel = canAccessBySubscription(user.subscription, course.level);
-                                          
-                                          return (
-                                            <div key={course.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                                              <div className="flex items-center space-x-2">
-                                                <SubscriptionBadge type={course.level} />
-                                                <div>
-                                                  <p className="font-medium text-sm">{course.title}</p>
-                                                  <p className="text-xs text-muted-foreground">{course.duration}min</p>
-                                                </div>
-                                              </div>
-                                              <div className="flex items-center space-x-2">
-                                                {canAccessByLevel && (
-                                                  <Badge variant="outline" className="text-xs text-success bg-success/10">
-                                                    Auto
-                                                  </Badge>
-                                                )}
-                                                <Switch
-                                                  checked={hasAccess}
-                                                  onCheckedChange={() => handleToggleCourseAccess(user.id, course.id, hasAccess)}
-                                                />
-                                              </div>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </CardContent>
-                                  </Card>
-                                ))}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <CourseAccessManagement users={users} courses={courses} />
           </TabsContent>
 
           {/* Abonnements */}

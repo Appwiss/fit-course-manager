@@ -55,6 +55,8 @@ export interface UserCourseAccess {
   hasAccess: boolean;
   grantedAt?: string;
   revokedAt?: string;
+  reason?: string; // Raison de la modification d'accès
+  overrideSubscription?: boolean; // Si true, ignore les permissions de l'abonnement
 }
 
 export interface AuthState {
