@@ -16,9 +16,14 @@ export function Header({ onLogout, userInfo }: HeaderProps) {
         {/* Logo et nom */}
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
+            <img
+              src="/lovable-uploads/c7962c38-aebc-4ed0-b262-42d0ca641ab1.png"
+              alt="Logo Xtreme Fitness"
+              className="w-10 h-10 object-contain"
+              loading="lazy"
+              width={40}
+              height={40}
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">Xtreme fitness</h1>
