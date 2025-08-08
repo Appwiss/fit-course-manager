@@ -36,11 +36,14 @@ export function Login() {
       
       <Card className="w-full max-w-md relative z-10 border-border/50 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mb-4 animate-pulse-glow">
-            <svg className="w-8 h-8 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
+          <img
+            src="/lovable-uploads/c7962c38-aebc-4ed0-b262-42d0ca641ab1.png"
+            alt="Logo Xtreme Fitness"
+            className="mx-auto w-28 h-16 object-contain mb-4"
+            loading="lazy"
+            width={112}
+            height={64}
+          />
           <CardTitle className="text-2xl font-bold">Xtreme fitness</CardTitle>
           <CardDescription>
             Connectez-vous à votre espace fitness
