@@ -26,6 +26,9 @@ export function AdminDashboard() {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   
+  // Gestion du statut du compte
+  const [suspensionUntil, setSuspensionUntil] = useState<string>('');
+  
   // Formulaire nouvel utilisateur
   const [newUser, setNewUser] = useState({
     username: '',
@@ -318,6 +321,13 @@ export function AdminDashboard() {
                           <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                           <div className="flex flex-wrap items-center gap-2 mt-1">
                             <SubscriptionBadge type={user.subscription} />
+                            {user.accountStatus !== 'active' && (
+                              <Badge variant="destructive" className="text-xs">
+                                {user.accountStatus === 'disabled' && 'Compte désactivé'}
+                                {user.accountStatus === 'cancelled' && 'Abonnement annulé'}
+                                {user.accountStatus === 'suspended' && `Suspendu jusqu'au ${user.suspendedUntil ? new Date(user.suspendedUntil).toLocaleDateString() : ''}`}
+                              </Badge>
+                            )}
                             <Badge variant="outline" className="text-xs">
                               {new Date(user.createdAt).toLocaleDateString()}
                             </Badge>
@@ -343,46 +353,88 @@ export function AdminDashboard() {
                           <span className="hidden sm:inline">Supprimer</span>
                         </Button>
                       </div>
-                    </div>
-                    
-                    {selectedUser?.id === user.id && (
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <h4 className="font-semibold mb-4">Accès aux cours</h4>
-                        <div className="grid gap-3">
-                          {courses.map((course) => {
-                            const hasAccess = getUserCourseAccess(user.id, course.id);
-                            const canAccessByLevel = canAccessBySubscription(user.subscription, course.level);
-                            
-                            return (
-                              <div key={course.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                <div className="flex items-center space-x-3">
-                                  <SubscriptionBadge type={course.level} />
-                                  <div>
-                                    <p className="font-medium">{course.title}</p>
-                                    <p className="text-sm text-muted-foreground">{course.category} • {course.duration}min</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-3">
-                                  {canAccessByLevel && (
-                                    <Badge variant="outline" className="text-success">
-                                      Accès par abonnement
-                                    </Badge>
-                                  )}
-                                  <Switch
-                                    checked={hasAccess}
-                                    onCheckedChange={() => handleToggleCourseAccess(user.id, course.id, hasAccess)}
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      
+                      {selectedUser?.id === user.id && (
+                        <div className="mt-6 pt-6 border-t border-border space-y-6">
+                          {/* Statut du compte */}
+                          <div>
+                            <h4 className="font-semibold mb-4">Statut du compte</h4>
+                            <div className="grid gap-3 sm:grid-cols-2 items-end">
+                              <div className="space-y-2">
+                                <Label>Date de fin de suspension</Label>
+                                <Input
+                                  type="date"
+                                  value={suspensionUntil}
+                                  onChange={(e) => setSuspensionUntil(e.target.value)}
+                                />
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => {
+                                    if (!suspensionUntil) { toast.error('Sélectionnez une date'); return; }
+                                    LocalStorageService.suspendUserAccount(user.id, suspensionUntil, 'admin_action');
+                                    loadData();
+                                    toast.success('Compte suspendu');
+                                  }}
+                                >
+                                  Suspendre jusqu’à la date
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() => { LocalStorageService.disableUserAccount(user.id, 'admin_action'); loadData(); toast.success('Compte désactivé'); }}
+                                >
+                                  Désactiver
+                                </Button>
+                                <Button
+                                  onClick={() => { LocalStorageService.reactivateUserAccount(user.id); loadData(); toast.success('Compte réactivé'); }}
+                                >
+                                  Réactiver
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Accès aux cours */}
+                          <div>
+                            <h4 className="font-semibold mb-4">Accès aux cours</h4>
+                            <div className="grid gap-3">
+                              {courses.map((course) => {
+                                const hasAccess = getUserCourseAccess(user.id, course.id);
+                                const canAccessByLevel = canAccessBySubscription(user.subscription, course.level);
+                                
+                                return (
+                                  <div key={course.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <div className="flex items-center space-x-3">
+                                      <SubscriptionBadge type={course.level} />
+                                      <div>
+                                        <p className="font-medium">{course.title}</p>
+                                        <p className="text-sm text-muted-foreground">{course.category} • {course.duration}min</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center space-x-3">
+                                      {canAccessByLevel && (
+                                        <Badge variant="outline" className="text-success">
+                                          Accès par abonnement
+                                        </Badge>
+                                      )}
+                                      <Switch
+                                        checked={hasAccess}
+                                        onCheckedChange={() => handleToggleCourseAccess(user.id, course.id, hasAccess)}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
           </TabsContent>
 
           {/* Gestion des cours */}

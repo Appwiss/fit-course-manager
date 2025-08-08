@@ -33,8 +33,10 @@ export interface User {
   isAdmin: boolean;
   accessibleCourses: string[];
   createdAt: string;
-  accountStatus: 'active' | 'disabled' | 'cancelled';
+  accountStatus: 'active' | 'disabled' | 'cancelled' | 'suspended';
   disabledReason?: 'payment_overdue' | 'admin_action';
+  suspendedUntil?: string;
+  suspensionReason?: string;
 }
 
 export interface Course {

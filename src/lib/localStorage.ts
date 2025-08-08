@@ -391,6 +391,8 @@ export class LocalStorageService {
     if (user) {
       user.accountStatus = 'active';
       user.disabledReason = undefined;
+      user.suspendedUntil = undefined;
+      user.suspensionReason = undefined;
       this.saveUsers(users);
 
       // Réactiver l'abonnement si il existe
@@ -412,6 +414,28 @@ export class LocalStorageService {
       }
     }
   }
+
+  static suspendUserAccount(userId: string, until: string, reason?: string) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.accountStatus = 'suspended';
+      user.suspendedUntil = until;
+      user.suspensionReason = reason;
+      this.saveUsers(users);
+    }
+  }
+
+  static disableUserAccount(userId: string, reason?: 'payment_overdue' | 'admin_action') {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.accountStatus = 'disabled';
+      user.disabledReason = reason || 'admin_action';
+      this.saveUsers(users);
+    }
+  }
+
 
   static getAccountsKPI() {
     const users = this.getUsers().filter(u => !u.isAdmin);

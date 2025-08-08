@@ -29,11 +29,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (username: string, password: string): boolean => {
     const user = LocalStorageService.authenticate(username, password);
     if (user) {
-      // Vérifier si le compte n'est pas désactivé ou annulé (sauf pour les admins)
-      if (!user.isAdmin && (user.accountStatus === 'disabled' || user.accountStatus === 'cancelled')) {
-        return false;
+      // Vérifier le statut du compte (sauf pour les admins)
+      if (!user.isAdmin) {
+        const now = new Date();
+
+        if (user.accountStatus === 'disabled' || user.accountStatus === 'cancelled') {
+          LocalStorageService.logout();
+          return false;
+        }
+
+        if (user.accountStatus === 'suspended') {
+          const until = user.suspendedUntil ? new Date(user.suspendedUntil) : null;
+          if (until && until > now) {
+            LocalStorageService.logout();
+            return false;
+          } else {
+            // Suspension expirée: réactiver
+            LocalStorageService.reactivateUserAccount(user.id);
+          }
+        }
       }
-      setCurrentUser(user);
+      const safeUser = LocalStorageService.getCurrentUser();
+      setCurrentUser(safeUser || user);
       return true;
     }
     return false;
