@@ -15,7 +15,7 @@ export function Header({ onLogout, userInfo }: HeaderProps) {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo et nom */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
             <img
               src="/lovable-uploads/c7962c38-aebc-4ed0-b262-42d0ca641ab1.png"
               alt="Logo Xtreme Fitness"
