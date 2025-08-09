@@ -26,6 +26,13 @@ export function AdminDashboard() {
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
   
+  // Etat d'édition des infos utilisateur sélectionné
+  const [editUserInfo, setEditUserInfo] = useState({
+    username: '',
+    email: '',
+    password: '',
+    subscription: 'debutant' as SubscriptionType,
+  });
   // Gestion du statut du compte
   const [suspensionUntil, setSuspensionUntil] = useState<string>('');
   
@@ -55,6 +62,17 @@ export function AdminDashboard() {
     loadData();
   }, []);
 
+  // Hydrate le formulaire d'édition lorsque l'admin ouvre "Gérer"
+  useEffect(() => {
+    if (selectedUser) {
+      setEditUserInfo({
+        username: selectedUser.username,
+        email: selectedUser.email,
+        password: '', // vide = ne pas changer
+        subscription: selectedUser.subscription,
+      });
+    }
+  }, [selectedUser]);
   const loadData = () => {
     setUsers(LocalStorageService.getUsers());
     setCourses(LocalStorageService.getCourses());
@@ -355,9 +373,91 @@ export function AdminDashboard() {
                       </div>
                       </div>
                       
-                      {selectedUser?.id === user.id && (
-                        <div className="mt-6 pt-6 border-t border-border space-y-6">
-                          {/* Statut du compte */}
+                        {selectedUser?.id === user.id && (
+                          <div className="mt-6 pt-6 border-t border-border space-y-6">
+                            {/* Informations de l'utilisateur */}
+                            <div>
+                              <h4 className="font-semibold mb-4">Informations de l'utilisateur</h4>
+                              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor={`edit-username-${user.id}`}>Nom d'utilisateur</Label>
+                                  <Input
+                                    id={`edit-username-${user.id}`}
+                                    value={editUserInfo.username}
+                                    onChange={(e) => setEditUserInfo({ ...editUserInfo, username: e.target.value })}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`edit-email-${user.id}`}>Email</Label>
+                                  <Input
+                                    id={`edit-email-${user.id}`}
+                                    type="email"
+                                    value={editUserInfo.email}
+                                    onChange={(e) => setEditUserInfo({ ...editUserInfo, email: e.target.value })}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`edit-password-${user.id}`}>Nouveau mot de passe</Label>
+                                  <Input
+                                    id={`edit-password-${user.id}`}
+                                    type="password"
+                                    placeholder="Laisser vide pour conserver"
+                                    value={editUserInfo.password}
+                                    onChange={(e) => setEditUserInfo({ ...editUserInfo, password: e.target.value })}
+                                  />
+                                </div>
+                                <div className="space-y-2">
+                                  <Label htmlFor={`edit-subscription-${user.id}`}>Abonnement</Label>
+                                  <Select
+                                    value={editUserInfo.subscription}
+                                    onValueChange={(value: SubscriptionType) =>
+                                      setEditUserInfo({ ...editUserInfo, subscription: value })
+                                    }
+                                  >
+                                    <SelectTrigger id={`edit-subscription-${user.id}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="debutant">Débutant</SelectItem>
+                                      <SelectItem value="medium">Medium</SelectItem>
+                                      <SelectItem value="expert">Expert</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="sm:col-span-2 lg:col-span-4">
+                                  <Button
+                                    className="w-full bg-gradient-primary"
+                                    onClick={() => {
+                                      if (!editUserInfo.username || !editUserInfo.email) {
+                                        toast.error('Nom et email sont requis');
+                                        return;
+                                      }
+                                      const otherUsers = users.filter((u) => u.id !== user.id);
+                                      const conflict = otherUsers.find(
+                                        (u) => u.username === editUserInfo.username || u.email === editUserInfo.email
+                                      );
+                                      if (conflict) {
+                                        toast.error("Nom d’utilisateur ou email déjà utilisés");
+                                        return;
+                                      }
+                                      const updatedUser: User = {
+                                        ...user,
+                                        username: editUserInfo.username,
+                                        email: editUserInfo.email,
+                                        subscription: editUserInfo.subscription as SubscriptionType,
+                                        password: editUserInfo.password ? editUserInfo.password : user.password,
+                                      };
+                                      LocalStorageService.updateUser(updatedUser);
+                                      loadData();
+                                      toast.success('Informations mises à jour');
+                                    }}
+                                  >
+                                    Mettre à jour les informations
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            {/* Statut du compte */}
                           <div>
                             <h4 className="font-semibold mb-4">Statut du compte</h4>
                             <div className="grid gap-3 sm:grid-cols-2 items-end">
