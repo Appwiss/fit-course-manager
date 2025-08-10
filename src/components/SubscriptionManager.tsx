@@ -172,7 +172,7 @@ export function SubscriptionManager() {
             onCheckedChange={(checked) => setAppAccess(checked === true)}
           />
           <Label htmlFor="app-access" className="text-sm font-medium">
-            Accès App mobile (+{interval === 'mensuel' ? '9.99€/mois' : '99.99€/an'})
+            Accès App mobile (+{interval === 'mensuel' ? '9.99 DA/mois' : '99.99 DA/an'})
           </Label>
         </div>
 
@@ -201,14 +201,14 @@ export function SubscriptionManager() {
                   </div>
                   <CardDescription>
                     <div className="text-2xl font-bold text-foreground">
-                      {price.toFixed(2)}€
+                      {price.toFixed(2)} DA
                       <span className="text-sm font-normal text-muted-foreground">
                         /{interval === 'mensuel' ? 'mois' : 'an'}
                       </span>
                     </div>
                     {savings > 0 && (
                       <Badge variant="secondary" className="mt-1">
-                        Économisez {savings.toFixed(2)}€
+                        Économisez {savings.toFixed(2)} DA
                       </Badge>
                     )}
                   </CardDescription>

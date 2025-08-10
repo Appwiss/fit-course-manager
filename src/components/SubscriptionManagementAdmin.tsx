@@ -367,7 +367,7 @@ export function SubscriptionManagementAdmin() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="monthly-price">Prix Mensuel (€)</Label>
+                        <Label htmlFor="monthly-price">Prix Mensuel (DA)</Label>
                         <Input
                           id="monthly-price"
                           type="number"
@@ -376,7 +376,7 @@ export function SubscriptionManagementAdmin() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="annual-price">Prix Annuel (€)</Label>
+                        <Label htmlFor="annual-price">Prix Annuel (DA)</Label>
                         <Input
                           id="annual-price"
                           type="number"
@@ -468,8 +468,8 @@ export function SubscriptionManagementAdmin() {
                       <CardContent>
                         <div className="space-y-3">
                           <div>
-                            <p className="text-2xl font-bold">{plan.monthlyPrice}€/mois</p>
-                            <p className="text-lg text-muted-foreground">{plan.annualPrice}€/an</p>
+                            <p className="text-2xl font-bold">{plan.monthlyPrice} DA/mois</p>
+                            <p className="text-lg text-muted-foreground">{plan.annualPrice} DA/an</p>
                           </div>
                           
                           <div className="flex items-center gap-2">
@@ -546,7 +546,7 @@ export function SubscriptionManagementAdmin() {
                           <SelectContent>
                             {plans.map((plan) => (
                               <SelectItem key={plan.id} value={plan.id}>
-                                {plan.name} - {plan.monthlyPrice}€/mois
+                                {plan.name} - {plan.monthlyPrice} DA/mois
                               </SelectItem>
                             ))}
                           </SelectContent>
