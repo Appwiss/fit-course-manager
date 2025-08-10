@@ -14,16 +14,249 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      courses: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          duration: number | null
+          id: string
+          instructor: string | null
+          level: Database["public"]["Enums"]["subscription_level"]
+          thumbnail: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          instructor?: string | null
+          level: Database["public"]["Enums"]["subscription_level"]
+          thumbnail?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          id?: string
+          instructor?: string | null
+          level?: Database["public"]["Enums"]["subscription_level"]
+          thumbnail?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          is_admin: boolean
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          is_admin?: boolean
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_admin?: boolean
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          annual_price: number
+          app_access: boolean
+          created_at: string
+          features: string[]
+          id: string
+          level: Database["public"]["Enums"]["subscription_level"]
+          monthly_price: number
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          annual_price: number
+          app_access?: boolean
+          created_at?: string
+          features?: string[]
+          id?: string
+          level: Database["public"]["Enums"]["subscription_level"]
+          monthly_price: number
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          annual_price?: number
+          app_access?: boolean
+          created_at?: string
+          features?: string[]
+          id?: string
+          level?: Database["public"]["Enums"]["subscription_level"]
+          monthly_price?: number
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_course_access: {
+        Row: {
+          course_id: string
+          created_at: string
+          granted_at: string | null
+          has_access: boolean
+          id: string
+          override_subscription: boolean
+          reason: string | null
+          revoked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          granted_at?: string | null
+          has_access?: boolean
+          id?: string
+          override_subscription?: boolean
+          reason?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          granted_at?: string | null
+          has_access?: boolean
+          id?: string
+          override_subscription?: boolean
+          reason?: string | null
+          revoked_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_course_access_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          app_access: boolean
+          created_at: string
+          end_date: string | null
+          id: string
+          interval: Database["public"]["Enums"]["payment_interval"]
+          next_payment_date: string | null
+          overdue_date: string | null
+          payment_method: string | null
+          plan_id: string
+          start_date: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_access?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          interval: Database["public"]["Enums"]["payment_interval"]
+          next_payment_date?: string | null
+          overdue_date?: string | null
+          payment_method?: string | null
+          plan_id: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_access?: boolean
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          interval?: Database["public"]["Enums"]["payment_interval"]
+          next_payment_date?: string | null
+          overdue_date?: string | null
+          payment_method?: string | null
+          plan_id?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      payment_interval: "mensuel" | "annuel"
+      subscription_level: "debutant" | "medium" | "expert"
+      subscription_status: "active" | "expired" | "cancelled" | "overdue"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +383,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_interval: ["mensuel", "annuel"],
+      subscription_level: ["debutant", "medium", "expert"],
+      subscription_status: ["active", "expired", "cancelled", "overdue"],
+    },
   },
 } as const
