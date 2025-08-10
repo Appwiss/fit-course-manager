@@ -9,6 +9,7 @@ export interface SubscriptionPlan {
   annualPrice: number;
   features: string[];
   appAccess: boolean;
+  isFamily?: boolean;
 }
 
 export interface UserSubscription {

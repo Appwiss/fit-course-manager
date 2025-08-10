@@ -31,7 +31,8 @@ export function SubscriptionManagementAdmin() {
     level: 'debutant' as SubscriptionType,
     monthlyPrice: '',
     annualPrice: '',
-    features: ['']
+    features: [''],
+    isFamily: false,
   });
 
   // États pour assignation utilisateur
@@ -70,11 +71,12 @@ export function SubscriptionManagementAdmin() {
       monthlyPrice: parseFloat(newPlan.monthlyPrice),
       annualPrice: parseFloat(newPlan.annualPrice),
       features: newPlan.features.filter(f => f.trim() !== ''),
-      appAccess: false
+      appAccess: false,
+      isFamily: newPlan.isFamily,
     };
 
     LocalStorageService.addSubscriptionPlan(plan);
-    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''] });
+    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
     setShowCreatePlan(false);
     loadData();
 
@@ -166,7 +168,8 @@ export function SubscriptionManagementAdmin() {
       level: plan.level,
       monthlyPrice: plan.monthlyPrice.toString(),
       annualPrice: plan.annualPrice.toString(),
-      features: plan.features
+      features: plan.features,
+      isFamily: plan.isFamily ?? false,
     });
     setShowCreatePlan(true);
   };
@@ -208,11 +211,12 @@ export function SubscriptionManagementAdmin() {
       level: newPlan.level,
       monthlyPrice: parseFloat(newPlan.monthlyPrice),
       annualPrice: parseFloat(newPlan.annualPrice),
-      features: newPlan.features.filter(f => f.trim() !== '')
+      features: newPlan.features.filter(f => f.trim() !== ''),
+      isFamily: newPlan.isFamily,
     };
 
     LocalStorageService.updateSubscriptionPlan(updatedPlan);
-    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''] });
+    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
     setEditingPlan(null);
     setShowCreatePlan(false);
     loadData();
@@ -224,7 +228,7 @@ export function SubscriptionManagementAdmin() {
   };
 
   const cancelEdit = () => {
-    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''] });
+    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
     setEditingPlan(null);
     setShowCreatePlan(false);
   };
@@ -384,6 +388,14 @@ export function SubscriptionManagementAdmin() {
                           onChange={(e) => setNewPlan({ ...newPlan, annualPrice: e.target.value })}
                         />
                       </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="is-family"
+                        checked={newPlan.isFamily}
+                        onCheckedChange={(checked) => setNewPlan({ ...newPlan, isFamily: checked === true })}
+                      />
+                      <Label htmlFor="is-family">Plan famille (peut avoir plusieurs utilisateurs)</Label>
                     </div>
                     <div>
                       <Label>Fonctionnalités</Label>

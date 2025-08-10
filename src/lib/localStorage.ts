@@ -33,7 +33,8 @@ const defaultSubscriptionPlans: SubscriptionPlan[] = [
     monthlyPrice: 19.99,
     annualPrice: 199.99,
     features: ['Accès aux cours débutants', 'Support email', 'Suivi des progrès'],
-    appAccess: false
+    appAccess: false,
+    isFamily: false
   },
   {
     id: 'plan-medium',
@@ -42,7 +43,8 @@ const defaultSubscriptionPlans: SubscriptionPlan[] = [
     monthlyPrice: 29.99,
     annualPrice: 299.99,
     features: ['Accès aux cours débutants et medium', 'Support prioritaire', 'Suivi avancé', 'Plans nutrition'],
-    appAccess: false
+    appAccess: false,
+    isFamily: false
   },
   {
     id: 'plan-expert',
@@ -51,7 +53,8 @@ const defaultSubscriptionPlans: SubscriptionPlan[] = [
     monthlyPrice: 39.99,
     annualPrice: 399.99,
     features: ['Accès à tous les cours', 'Support VIP', 'Coaching personnalisé', 'Plans nutrition premium'],
-    appAccess: false
+    appAccess: false,
+    isFamily: false
   }
 ];
 
