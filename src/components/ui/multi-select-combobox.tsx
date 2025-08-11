@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -66,28 +66,31 @@ export function MultiSelectCombobox({
         <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-0 z-50 bg-popover">
           <Command shouldFilter>
             <CommandInput placeholder="Rechercher..." />
-            <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup className="max-h-60 overflow-auto">
-              {items.map((item) => {
-                const selected = value.includes(item.value);
-                return (
-                  <CommandItem
-                    key={item.value}
-                    value={item.label}
-                    onSelect={() => toggleValue(item.value)}
-                    className="cursor-pointer"
-                  >
-                    <Check className={cn("mr-2 h-4 w-4", selected ? "opacity-100" : "opacity-0")} />
-                    <div className="flex flex-col">
-                      <span>{item.label}</span>
-                      {item.description && (
-                        <span className="text-xs text-muted-foreground">{item.description}</span>
-                      )}
-                    </div>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
+            <CommandList>
+              <CommandEmpty>{emptyText}</CommandEmpty>
+              <CommandGroup className="max-h-60 overflow-auto">
+                {items.map((item) => {
+                  const selected = value.includes(item.value);
+                  return (
+                    <CommandItem
+                      key={item.value}
+                      value={item.label}
+                      keywords={[item.label, item.description ?? ""]}
+                      onSelect={() => toggleValue(item.value)}
+                      className="cursor-pointer"
+                    >
+                      <Check className={cn("mr-2 h-4 w-4", selected ? "opacity-100" : "opacity-0")} />
+                      <div className="flex flex-col">
+                        <span>{item.label}</span>
+                        {item.description && (
+                          <span className="text-xs text-muted-foreground">{item.description}</span>
+                        )}
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
