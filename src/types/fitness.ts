@@ -66,3 +66,12 @@ export interface AuthState {
   isAuthenticated: boolean;
   currentUser: User | null;
 }
+
+export interface Product {
+  id: string;
+  label: string;
+  description: string;
+  price: number;
+  image?: string; // data URL ou URL http(s)
+  createdAt: string;
+}

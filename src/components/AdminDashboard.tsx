@@ -13,6 +13,7 @@ import { Header } from '@/components/ui/header';
 import { SubscriptionManagementAdmin } from '@/components/SubscriptionManagementAdmin';
 import { ImageInput } from '@/components/ui/image-input';
 import { CourseAccessManagement } from '@/components/CourseAccessManagement';
+import { ShopManager } from '@/components/ShopManager';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -228,7 +229,7 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-1">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 gap-1">
             <TabsTrigger value="users" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Utilisateurs</span>
               <span className="sm:hidden">Users</span>
@@ -246,6 +247,10 @@ export function AdminDashboard() {
             <TabsTrigger value="subscriptions" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Gestion Abonnements</span>
               <span className="sm:hidden">Abos</span>
+            </TabsTrigger>
+            <TabsTrigger value="shop" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Boutique</span>
+              <span className="sm:hidden">Shop</span>
             </TabsTrigger>
           </TabsList>
 
@@ -910,6 +915,19 @@ export function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <SubscriptionManagementAdmin />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Boutique */}
+          <TabsContent value="shop" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Boutique</CardTitle>
+                <CardDescription>Créer et gérer vos produits (simulation locale)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ShopManager />
               </CardContent>
             </Card>
           </TabsContent>

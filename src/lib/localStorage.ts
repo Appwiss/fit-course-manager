@@ -1,4 +1,4 @@
-import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription, PaymentInterval } from '@/types/fitness';
+import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription, PaymentInterval, Product } from '@/types/fitness';
 
 const STORAGE_KEYS = {
   USERS: 'fitness_app_users',
@@ -6,7 +6,8 @@ const STORAGE_KEYS = {
   COURSE_ACCESS: 'fitness_app_course_access',
   CURRENT_USER: 'fitness_app_current_user',
   SUBSCRIPTION_PLANS: 'fitness_app_subscription_plans',
-  USER_SUBSCRIPTIONS: 'fitness_app_user_subscriptions'
+  USER_SUBSCRIPTIONS: 'fitness_app_user_subscriptions',
+  PRODUCTS: 'fitness_app_products'
 };
 
 // Utilisateurs par défaut
@@ -146,6 +147,9 @@ export class LocalStorageService {
     if (!localStorage.getItem(STORAGE_KEYS.USER_SUBSCRIPTIONS)) {
       localStorage.setItem(STORAGE_KEYS.USER_SUBSCRIPTIONS, JSON.stringify([]));
     }
+    if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+    }
   }
 
   // Gestion des utilisateurs
@@ -186,6 +190,27 @@ export class LocalStorageService {
 
   static saveCourses(courses: Course[]) {
     localStorage.setItem(STORAGE_KEYS.COURSES, JSON.stringify(courses));
+  }
+
+  // Gestion des produits
+  static getProducts(): Product[] {
+    const products = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    return products ? JSON.parse(products) : [];
+  }
+
+  static saveProducts(products: Product[]) {
+    localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+  }
+
+  static addProduct(product: Product) {
+    const products = this.getProducts();
+    products.push(product);
+    this.saveProducts(products);
+  }
+
+  static deleteProduct(productId: string) {
+    const products = this.getProducts().filter(p => p.id !== productId);
+    this.saveProducts(products);
   }
 
   // Gestion des accès aux cours
