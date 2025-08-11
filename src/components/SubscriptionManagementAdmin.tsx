@@ -14,6 +14,7 @@ import { Plus, Users, CreditCard, AlertTriangle, CheckCircle, XCircle, RefreshCw
 import { LocalStorageService } from "@/lib/localStorage";
 import { SubscriptionPlan, User, UserSubscription, PaymentInterval, SubscriptionType } from "@/types/fitness";
 import { useToast } from "@/hooks/use-toast";
+import { MultiSelectCombobox } from "@/components/ui/multi-select-combobox";
 
 export function SubscriptionManagementAdmin() {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -42,6 +43,7 @@ export function SubscriptionManagementAdmin() {
     interval: 'mensuel' as PaymentInterval,
     appAccess: false
   });
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
 
   useEffect(() => {
     loadData();
@@ -87,30 +89,35 @@ export function SubscriptionManagementAdmin() {
   };
 
   const handleAssignUser = () => {
-    if (!assignForm.userId || !assignForm.planId) {
+    if (selectedUserIds.length === 0 || !assignForm.planId) {
       toast({
         title: "Erreur",
-        description: "Veuillez sélectionner un utilisateur et un plan",
+        description: "Veuillez sélectionner au moins un utilisateur et un plan",
         variant: "destructive"
       });
       return;
     }
 
-    const success = LocalStorageService.assignUserToSubscription(
-      assignForm.userId,
-      assignForm.planId,
-      assignForm.interval,
-      assignForm.appAccess
-    );
+    let successCount = 0;
+    selectedUserIds.forEach((uid) => {
+      const ok = LocalStorageService.assignUserToSubscription(
+        uid,
+        assignForm.planId,
+        assignForm.interval,
+        assignForm.appAccess
+      );
+      if (ok) successCount++;
+    });
 
-    if (success) {
+    if (successCount > 0) {
       setAssignForm({ userId: '', planId: '', interval: 'mensuel', appAccess: false });
+      setSelectedUserIds([]);
       setShowAssignUser(false);
       loadData();
 
       toast({
         title: "Abonnement assigné",
-        description: "L'utilisateur a été assigné au plan avec succès"
+        description: `${successCount} utilisateur${successCount > 1 ? 's' : ''} assigné${successCount > 1 ? 's' : ''} au plan avec succès`
       });
     } else {
       toast({
@@ -328,16 +335,16 @@ export function SubscriptionManagementAdmin() {
         <TabsContent value="plans">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Plans d'Abonnement</CardTitle>
-                  <CardDescription>Gérer les plans disponibles</CardDescription>
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle>Plans d'Abonnement</CardTitle>
+                    <CardDescription>Gérer les plans disponibles</CardDescription>
+                  </div>
+                  <Button onClick={() => { setEditingPlan(null); setShowCreatePlan(!showCreatePlan); }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Créer un Plan
+                  </Button>
                 </div>
-                <Button onClick={() => setShowCreatePlan(!showCreatePlan)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Créer un Plan
-                </Button>
-              </div>
             </CardHeader>
             <CardContent>
               {showCreatePlan && (
@@ -361,7 +368,7 @@ export function SubscriptionManagementAdmin() {
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="z-50 bg-popover">
                             <SelectItem value="debutant">Débutant</SelectItem>
                             <SelectItem value="medium">Medium</SelectItem>
                             <SelectItem value="expert">Expert</SelectItem>
@@ -520,7 +527,7 @@ export function SubscriptionManagementAdmin() {
                   <CardTitle>Gestion des Utilisateurs</CardTitle>
                   <CardDescription>Assigner des abonnements aux utilisateurs</CardDescription>
                 </div>
-                <Button onClick={() => setShowAssignUser(!showAssignUser)}>
+                <Button onClick={() => { setShowAssignUser(!showAssignUser); if (!showAssignUser) setSelectedUserIds([]); }}>
                   <CreditCard className="h-4 w-4 mr-2" />
                   Assigner un Abonnement
                 </Button>
@@ -535,19 +542,18 @@ export function SubscriptionManagementAdmin() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label>Utilisateur</Label>
-                        <Select value={assignForm.userId} onValueChange={(value) => setAssignForm({ ...assignForm, userId: value })}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Sélectionner un utilisateur" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {users.map((user) => (
-                              <SelectItem key={user.id} value={user.id}>
-                                {user.username} ({user.email})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Label>Utilisateurs</Label>
+                        <MultiSelectCombobox
+                          items={users.map((u) => ({
+                            value: u.id,
+                            label: `${u.username} (${u.email})`,
+                            description: u.subscription ? `Niveau: ${u.subscription}` : undefined,
+                          }))}
+                          value={selectedUserIds}
+                          onChange={setSelectedUserIds}
+                          placeholder="Sélectionner des utilisateurs..."
+                          emptyText="Aucun utilisateur"
+                        />
                       </div>
                       <div>
                         <Label>Plan</Label>
@@ -588,7 +594,7 @@ export function SubscriptionManagementAdmin() {
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={handleAssignUser}>Assigner</Button>
-                      <Button variant="outline" onClick={() => setShowAssignUser(false)}>Annuler</Button>
+                      <Button variant="outline" onClick={() => { setSelectedUserIds([]); setShowAssignUser(false); }}>Annuler</Button>
                     </div>
                   </CardContent>
                 </Card>
