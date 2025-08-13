@@ -5,120 +5,109 @@
 /* Fitness App Design System - Couleurs énergiques et modernes */
 
 @layer base {
-  :root {
-    /* Thème light avec nouvelles couleurs */
-    
---background: 0 0% 96%;
-    --foreground: 210 8% 13%;
+:root {
+  /* Thème clair inspiré du dashboard */
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 8% 13%;
+  --background: 0 0% 98%; /* Fond très pâle */
+  --foreground: 220 5% 20%; /* Texte gris foncé */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 210 8% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 5% 20%;
 
-    /* Couleurs principales - Vert vif */
-    --primary: 120 100% 40%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 120 100% 55%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 5% 20%;
 
-    /* Couleurs secondaires - Gris */
-   --secondary: 120 60% 25%; /* Vert foncé */
---secondary-foreground: 0 0% 100%; /* Texte blanc sur vert foncé */
+  /* Vert doux comme couleur principale */
+  --primary: 145 60% 45%;
+  --primary-foreground: 0 0% 100%;
+  --primary-glow: 145 60% 55%;
 
---muted: 120 50% 20%; /* Vert encore plus foncé */
---muted-foreground: 0 0% 100%; /* Texte blanc */
+  /* Gris doux comme couleur secondaire */
+  --secondary: 220 10% 85%;
+  --secondary-foreground: 220 5% 20%;
 
+  --muted: 220 10% 90%;
+  --muted-foreground: 220 5% 40%;
 
-    /* Accent - Gris clair */
-    --accent: 0 0% 96%;
-    --accent-foreground: 210 8% 13%;
+  --accent: 145 60% 45%;
+  --accent-foreground: 0 0% 100%;
 
-    /* Success - Vert clair */
-    --success: 120 100% 55%;
-    --success-foreground: 0 0% 100%;
+  --success: 145 60% 55%;
+  --success-foreground: 0 0% 100%;
 
-    /* Expert - Vert foncé */
-    --expert: 120 100% 35%;
-    --expert-foreground: 0 0% 100%;
+  --expert: 145 60% 35%;
+  --expert-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 0% 100%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 120 100% 40%;
+  --border: 220 10% 90%;
+  --input: 220 10% 90%;
+  --ring: 145 60% 45%;
 
+  /* Gradients doux */
+  --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)));
+  --gradient-expert: linear-gradient(135deg, hsl(var(--expert)), hsl(var(--primary)));
+  --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(var(--accent)));
 
-    
-    /* Gradients fitness */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)));
-    --gradient-expert: linear-gradient(135deg, hsl(var(--expert)), hsl(var(--primary)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(var(--accent)));
+  /* Ombres légères */
+  --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2);
+  --shadow-card: 0 4px 16px hsl(220 10% 10% / 0.1);
 
-    /* Ombres élégantes */
-    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.3);
-    --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.3);
-    
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: all 0.3s ease-in-out;
+  --radius: 0.5rem;
 
-    --radius: 0.5rem;
+  /* Sidebar */
+  --sidebar-background: 0 0% 100%;
+  --sidebar-foreground: 220 5% 20%;
+  --sidebar-primary: 145 60% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 10% 90%;
+  --sidebar-accent-foreground: 220 5% 20%;
+  --sidebar-border: 220 10% 90%;
+  --sidebar-ring: 145 60% 45%;
+}
 
-    --sidebar-background: 0 0% 98%;
+.dark {
+  /* Thème sombre adapté */
+  --background: 220 5% 10%;
+  --foreground: 0 0% 100%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+  --card: 220 5% 15%;
+  --card-foreground: 0 0% 90%;
 
-    --sidebar-primary: 240 5.9% 10%;
+  --popover: 220 5% 15%;
+  --popover-foreground: 0 0% 90%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+  --primary: 145 60% 45%;
+  --primary-foreground: 0 0% 100%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+  --secondary: 220 5% 25%;
+  --secondary-foreground: 0 0% 90%;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
+  --muted: 220 5% 20%;
+  --muted-foreground: 0 0% 60%;
 
-    --sidebar-border: 220 13% 91%;
+  --accent: 220 5% 25%;
+  --accent-foreground: 0 0% 90%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+  --destructive: 0 70% 40%;
+  --destructive-foreground: 0 0% 100%;
 
-  .dark {
-    --background: 210 8% 13%;
-    --foreground: 0 0% 100%;
+  --border: 220 5% 25%;
+  --input: 220 5% 20%;
+  --ring: 145 60% 45%;
 
-    --card: 210 8% 18%;
-    --card-foreground: 0 0% 88%;
-
-    --popover: 210 8% 18%;
-    --popover-foreground: 0 0% 88%;
-
-    --primary: 120 100% 40%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 8% 28%;
-    --secondary-foreground: 0 0% 88%;
-
-    --muted: 210 8% 18%;
-    --muted-foreground: 0 0% 57%;
-
-    --accent: 210 8% 28%;
-    --accent-foreground: 0 0% 88%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 210 8% 28%;
-    --input: 210 8% 18%;
-    --ring: 120 100% 40%;
-    --sidebar-background: 210 8% 13%;
-    --sidebar-foreground: 0 0% 88%;
-    --sidebar-primary: 120 100% 40%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 8% 18%;
-    --sidebar-accent-foreground: 0 0% 88%;
-    --sidebar-border: 210 8% 28%;
-    --sidebar-ring: 120 100% 40%;
+  --sidebar-background: 220 5% 10%;
+  --sidebar-foreground: 0 0% 90%;
+  --sidebar-primary: 145 60% 45%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 5% 20%;
+  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-border: 220 5% 25%;
+  --sidebar-ring: 145 60% 45%;
+}
   }
 }
 
