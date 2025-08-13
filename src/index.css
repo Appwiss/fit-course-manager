@@ -23,11 +23,12 @@
     --primary-glow: 120 100% 55%;
 
     /* Couleurs secondaires - Gris */
-    --secondary: 0 0% 57%;
-    --secondary-foreground: 0 0% 100%;
+   --secondary: 120 60% 25%; /* Vert foncé */
+--secondary-foreground: 0 0% 100%; /* Texte blanc sur vert foncé */
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 57%;
+--muted: 120 50% 20%; /* Vert encore plus foncé */
+--muted-foreground: 0 0% 100%; /* Texte blanc */
+
 
     /* Accent - Gris clair */
     --accent: 0 0% 96%;
