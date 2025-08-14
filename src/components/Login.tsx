@@ -41,8 +41,8 @@ export function Login() {
             alt="Logo Xtreme Fitness"
             className="mx-auto w-28 h-16 object-contain mb-4"
             loading="lazy"
-            width={112}
-            height={64}
+            width={150}
+            height={150}
           />
           <CardTitle className="text-2xl font-bold">Xtreme fitness</CardTitle>
           <CardDescription>
