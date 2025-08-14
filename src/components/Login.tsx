@@ -39,7 +39,8 @@ export function Login() {
           <img
             src="/lovable-uploads/c7962c38-aebc-4ed0-b262-42d0ca641ab1.png"
             alt="Logo Xtreme Fitness"
-            className="mx-auto w-28 h-16 object-contain mb-4"
+            /*className="mx-auto w-28 h-16 object-contain mb-4"*/
+            className="mx-auto w-56 h-32 object-contain mb-4"
             loading="lazy"
             width={200}
             height={200}
