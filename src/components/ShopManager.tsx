@@ -105,7 +105,7 @@ export function ShopManager() {
                   <h3 className="font-semibold">{p.label}</h3>
                   <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="font-medium">{p.price.toFixed(2)} €</span>
+                    <span className="font-medium">{p.price.toFixed(2)} DT</span>
                     <Button variant="destructive" size="sm" onClick={() => handleDelete(p.id)}>Supprimer</Button>
                   </div>
                 </div>
