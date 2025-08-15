@@ -74,7 +74,7 @@ export function ShopManager() {
               <Input id="product-label" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex: T-shirt Xtreme" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="product-price">Prix (€)</Label>
+              <Label htmlFor="product-price">Prix (DT)</Label>
               <Input id="product-price" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="29.90" required />
             </div>
             <div className="md:col-span-2 space-y-2">
