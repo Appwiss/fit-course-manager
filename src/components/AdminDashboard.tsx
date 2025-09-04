@@ -15,6 +15,7 @@ import { ImageInput } from '@/components/ui/image-input';
 import { CourseAccessManagement } from '@/components/CourseAccessManagement';
 import { ShopManager } from '@/components/ShopManager';
 import { WeeklyProgramManager } from '@/components/WeeklyProgramManager';
+import { ProgramAssignment } from '@/components/ProgramAssignment';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
@@ -230,7 +231,7 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 gap-1">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 gap-1">
             <TabsTrigger value="users" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Utilisateurs</span>
               <span className="sm:hidden">Users</span>
@@ -244,6 +245,10 @@ export function AdminDashboard() {
             <TabsTrigger value="programs" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Programmes</span>
               <span className="sm:hidden">Prog</span>
+            </TabsTrigger>
+            <TabsTrigger value="assignments" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Affectations</span>
+              <span className="sm:hidden">Affect</span>
             </TabsTrigger>
             <TabsTrigger value="permissions" className="text-xs sm:text-sm">
               <span className="hidden sm:inline">Permissions</span>
@@ -907,6 +912,11 @@ export function AdminDashboard() {
           {/* Programmes par semaine */}
           <TabsContent value="programs" className="space-y-6">
             <WeeklyProgramManager />
+          </TabsContent>
+
+          {/* Affectation des programmes */}
+          <TabsContent value="assignments" className="space-y-6">
+            <ProgramAssignment />
           </TabsContent>
 
           {/* Permissions granulaires */}

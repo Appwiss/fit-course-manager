@@ -38,6 +38,7 @@ export interface User {
   disabledReason?: 'payment_overdue' | 'admin_action';
   suspendedUntil?: string;
   suspensionReason?: string;
+  assignedProgramId?: string; // ID du programme hebdomadaire assigné
 }
 
 export interface Course {

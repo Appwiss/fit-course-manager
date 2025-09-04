@@ -536,4 +536,24 @@ export class LocalStorageService {
     const programs = this.getWeeklyPrograms().filter(p => p.id !== programId);
     this.saveWeeklyPrograms(programs);
   }
+
+  // Gestion de l'affectation de programmes aux utilisateurs
+  static assignProgramToUser(userId: string, programId: string | null) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.assignedProgramId = programId || undefined;
+      this.updateUser(user);
+      return true;
+    }
+    return false;
+  }
+
+  static getUserAssignedProgram(userId: string): WeeklyProgram | null {
+    const user = this.getUsers().find(u => u.id === userId);
+    if (!user?.assignedProgramId) return null;
+    
+    const programs = this.getWeeklyPrograms();
+    return programs.find(p => p.id === user.assignedProgramId) || null;
+  }
 }
