@@ -75,3 +75,19 @@ export interface Product {
   image?: string; // data URL ou URL http(s)
   createdAt: string;
 }
+
+export interface WeeklyProgram {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  schedule: DaySchedule[];
+}
+
+export interface DaySchedule {
+  dayOfWeek: number; // 0-6 (Lundi=1, Dimanche=0)
+  dayName: string;
+  isRestDay: boolean;
+  courses: string[]; // IDs des cours
+  restDescription?: string; // Description si c'est un jour de repos
+}

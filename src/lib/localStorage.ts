@@ -1,4 +1,4 @@
-import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription, PaymentInterval, Product } from '@/types/fitness';
+import { User, Course, UserCourseAccess, SubscriptionPlan, UserSubscription, PaymentInterval, Product, WeeklyProgram } from '@/types/fitness';
 
 const STORAGE_KEYS = {
   USERS: 'fitness_app_users',
@@ -7,7 +7,8 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'fitness_app_current_user',
   SUBSCRIPTION_PLANS: 'fitness_app_subscription_plans',
   USER_SUBSCRIPTIONS: 'fitness_app_user_subscriptions',
-  PRODUCTS: 'fitness_app_products'
+  PRODUCTS: 'fitness_app_products',
+  WEEKLY_PROGRAMS: 'fitness_app_weekly_programs'
 };
 
 // Utilisateurs par défaut
@@ -149,6 +150,9 @@ export class LocalStorageService {
     }
     if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+    }
+    if (!localStorage.getItem(STORAGE_KEYS.WEEKLY_PROGRAMS)) {
+      localStorage.setItem(STORAGE_KEYS.WEEKLY_PROGRAMS, JSON.stringify([]));
     }
   }
 
@@ -501,5 +505,35 @@ export class LocalStorageService {
       subscription.status = 'cancelled';
       this.saveUserSubscriptions(subscriptions);
     }
+  }
+
+  // Gestion des programmes hebdomadaires
+  static getWeeklyPrograms(): WeeklyProgram[] {
+    const programs = localStorage.getItem(STORAGE_KEYS.WEEKLY_PROGRAMS);
+    return programs ? JSON.parse(programs) : [];
+  }
+
+  static saveWeeklyPrograms(programs: WeeklyProgram[]) {
+    localStorage.setItem(STORAGE_KEYS.WEEKLY_PROGRAMS, JSON.stringify(programs));
+  }
+
+  static addWeeklyProgram(program: WeeklyProgram) {
+    const programs = this.getWeeklyPrograms();
+    programs.push(program);
+    this.saveWeeklyPrograms(programs);
+  }
+
+  static updateWeeklyProgram(updatedProgram: WeeklyProgram) {
+    const programs = this.getWeeklyPrograms();
+    const index = programs.findIndex(p => p.id === updatedProgram.id);
+    if (index !== -1) {
+      programs[index] = updatedProgram;
+      this.saveWeeklyPrograms(programs);
+    }
+  }
+
+  static deleteWeeklyProgram(programId: string) {
+    const programs = this.getWeeklyPrograms().filter(p => p.id !== programId);
+    this.saveWeeklyPrograms(programs);
   }
 }
