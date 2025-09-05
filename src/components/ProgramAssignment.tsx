@@ -29,7 +29,7 @@ export function ProgramAssignment() {
       return;
     }
 
-    const programId = selectedProgramId || null;
+    const programId = selectedProgramId === 'none' ? null : selectedProgramId || null;
     const success = LocalStorageService.assignProgramToUser(selectedUserId, programId);
     
     if (success) {
@@ -101,7 +101,7 @@ export function ProgramAssignment() {
                   <SelectValue placeholder="Sélectionner un programme ou laisser vide" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     <span className="text-muted-foreground">Aucun programme (retirer)</span>
                   </SelectItem>
                   {programs.map((program) => (
