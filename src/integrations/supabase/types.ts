@@ -56,6 +56,77 @@ export type Database = {
         }
         Relationships: []
       }
+      day_schedules: {
+        Row: {
+          created_at: string
+          day_name: string
+          day_of_week: number
+          id: string
+          is_rest_day: boolean
+          program_id: string
+          rest_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_name: string
+          day_of_week: number
+          id?: string
+          is_rest_day?: boolean
+          program_id: string
+          rest_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_name?: string
+          day_of_week?: number
+          id?: string
+          is_rest_day?: boolean
+          program_id?: string
+          rest_description?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "day_schedules_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "weekly_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          label: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          label: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          label?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -103,6 +174,45 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      schedule_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          order_index: number
+          schedule_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          schedule_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schedule_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schedule_courses_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "day_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_plans: {
         Row: {
@@ -242,6 +352,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weekly_programs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
