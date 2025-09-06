@@ -4,25 +4,48 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export function Login() {
-  const [email, setEmail] = useState('');
+  const [loginField, setLoginField] = useState(''); // Email ou nom d'utilisateur
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        toast.error('Email ou mot de passe incorrect');
+      // Vérifier si c'est un email ou un nom d'utilisateur
+      const isEmail = loginField.includes('@');
+      
+      if (isEmail) {
+        const { error } = await signIn(loginField, password);
+        if (error) {
+          toast.error('Email ou mot de passe incorrect');
+        } else {
+          toast.success('Connexion réussie !');
+        }
       } else {
-        toast.success('Connexion réussie !');
+        // Chercher l'email par nom d'utilisateur
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', loginField)
+          .single();
+          
+        if (profile?.email) {
+          const { error } = await signIn(profile.email, password);
+          if (error) {
+            toast.error('Nom d\'utilisateur ou mot de passe incorrect');
+          } else {
+            toast.success('Connexion réussie !');
+          }
+        } else {
+          toast.error('Nom d\'utilisateur introuvable');
+        }
       }
     } catch (error) {
       toast.error('Erreur lors de la connexion');
@@ -31,23 +54,6 @@ export function Login() {
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      const { error } = await signUp(email, password);
-      if (error) {
-        toast.error('Erreur lors de l\'inscription: ' + error.message);
-      } else {
-        toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
-      }
-    } catch (error) {
-      toast.error('Erreur lors de l\'inscription');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -70,88 +76,41 @@ export function Login() {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
-            </TabsList>
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="login-field">Email ou nom d'utilisateur</Label>
+              <Input
+                id="login-field"
+                type="text"
+                value={loginField}
+                onChange={(e) => setLoginField(e.target.value)}
+                placeholder="Entrez votre email ou nom d'utilisateur"
+                required
+                className="bg-muted/50"
+              />
+            </div>
             
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Entrez votre email"
-                    required
-                    className="bg-muted/50"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Mot de passe</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Entrez votre mot de passe"
-                    required
-                    className="bg-muted/50"
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Connexion...' : 'Se connecter'}
-                </Button>
-              </form>
-            </TabsContent>
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Entrez votre mot de passe"
+                required
+                className="bg-muted/50"
+              />
+            </div>
             
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Entrez votre email"
-                    required
-                    className="bg-muted/50"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Mot de passe</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Choisissez un mot de passe"
-                    required
-                    className="bg-muted/50"
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Inscription...' : 'S\'inscrire'}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+            <Button 
+              type="submit" 
+              className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Connexion...' : 'Se connecter'}
+            </Button>
+          </form>
           
           <div className="mt-6 p-4 bg-muted/30 rounded-lg">
             <p className="text-sm text-muted-foreground mb-2">Compte administrateur :</p>
