@@ -1,72 +1,96 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '@/types/fitness';
-import { LocalStorageService } from '@/lib/localStorage';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
-  currentUser: User | null;
-  login: (username: string, password: string) => boolean;
-  logout: () => void;
+  user: User | null;
+  session: Session | null;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Initialiser les données lors du premier chargement
-    LocalStorageService.initializeData();
-    
-    // Vérifier s'il y a un utilisateur connecté
-    const user = LocalStorageService.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-    }
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Check if user is admin
+        if (session?.user) {
+          setTimeout(async () => {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('id', session.user.id)
+              .single();
+            
+            setIsAdmin(profile?.is_admin || false);
+          }, 0);
+        } else {
+          setIsAdmin(false);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    const user = LocalStorageService.authenticate(username, password);
-    if (user) {
-      // Vérifier le statut du compte (sauf pour les admins)
-      if (!user.isAdmin) {
-        const now = new Date();
-
-        if (user.accountStatus === 'disabled' || user.accountStatus === 'cancelled') {
-          LocalStorageService.logout();
-          return false;
-        }
-
-        if (user.accountStatus === 'suspended') {
-          const until = user.suspendedUntil ? new Date(user.suspendedUntil) : null;
-          if (until && until > now) {
-            LocalStorageService.logout();
-            return false;
-          } else {
-            // Suspension expirée: réactiver
-            LocalStorageService.reactivateUserAccount(user.id);
-          }
-        }
-      }
-      const safeUser = LocalStorageService.getCurrentUser();
-      setCurrentUser(safeUser || user);
-      return true;
-    }
-    return false;
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
   };
 
-  const logout = () => {
-    LocalStorageService.logout();
-    setCurrentUser(null);
+  const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+    return { error };
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
   const value = {
-    currentUser,
-    login,
-    logout,
-    isAuthenticated: !!currentUser,
-    isAdmin: currentUser?.isAdmin || false
+    user,
+    session,
+    signIn,
+    signUp,
+    signOut,
+    isAuthenticated: !!session,
+    isAdmin,
+    loading
   };
 
   return (

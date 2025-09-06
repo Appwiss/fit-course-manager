@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 
 export function AdminDashboard() {
-  const { currentUser, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -127,7 +127,7 @@ export function AdminDashboard() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    if (userId === currentUser?.id) {
+    if (userId === user?.id) {
       toast.error('Vous ne pouvez pas supprimer votre propre compte');
       return;
     }
@@ -222,9 +222,9 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        onLogout={logout} 
+        onLogout={signOut} 
         userInfo={{
-          username: currentUser?.username || '',
+          username: user?.email || '',
           subscription: 'Admin'
         }} 
       />

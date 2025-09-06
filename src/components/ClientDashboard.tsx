@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function ClientDashboard() {
-  const { currentUser, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
@@ -27,7 +27,7 @@ export function ClientDashboard() {
   const hasCustomAccess = (courseId: string) => {
     const courseAccess = LocalStorageService.getCourseAccess();
     const customAccess = courseAccess.find(
-      access => access.userId === currentUser!.id && access.courseId === courseId && access.overrideSubscription
+      access => access.userId === user!.id && access.courseId === courseId && access.overrideSubscription
     );
     return customAccess ? customAccess.hasAccess : null;
   };
@@ -41,7 +41,7 @@ export function ClientDashboard() {
     }
     
     // Sinon, utiliser l'accès par défaut basé sur l'abonnement
-    return canAccessBySubscription(currentUser!.subscription, course.level);
+    return canAccessBySubscription('debutant', course.level);
   };
 
   const getAvailableCourses = () => {
@@ -67,10 +67,10 @@ export function ClientDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        onLogout={logout} 
+        onLogout={signOut} 
         userInfo={{
-          username: currentUser?.username || '',
-          subscription: currentUser?.subscription || 'debutant'
+          username: user?.email || '',
+          subscription: 'debutant'
         }} 
       />
 
@@ -98,7 +98,7 @@ export function ClientDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Mon abonnement</p>
-                  <p className="text-2xl font-bold">{currentUser?.subscription.charAt(0).toUpperCase() + currentUser?.subscription.slice(1)}</p>
+                  <p className="text-2xl font-bold">Débutant</p>
                 </div>
                 <div className="w-12 h-12 bg-gradient-secondary rounded-full flex items-center justify-center">
                   <svg className="w-6 h-6 text-secondary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -18,15 +18,15 @@ export function SubscriptionManager() {
   const [interval, setInterval] = useState<PaymentInterval>('mensuel');
   const [appAccess, setAppAccess] = useState(false);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     const subscriptionPlans = LocalStorageService.getSubscriptionPlans();
     setPlans(subscriptionPlans);
 
-    if (currentUser) {
-      const userSub = LocalStorageService.getUserSubscription(currentUser.id);
+    if (user) {
+      const userSub = LocalStorageService.getUserSubscription(user.id);
       setCurrentSubscription(userSub);
       if (userSub) {
         setSelectedPlan(userSub.planId);
@@ -34,7 +34,7 @@ export function SubscriptionManager() {
         setAppAccess(userSub.appAccess);
       }
     }
-  }, [currentUser]);
+  }, [user]);
 
   const getPrice = (plan: SubscriptionPlan) => {
     const basePrice = interval === 'mensuel' ? plan.monthlyPrice : plan.annualPrice;
@@ -61,7 +61,7 @@ export function SubscriptionManager() {
   };
 
   const handleSubscribe = () => {
-    if (!currentUser || !selectedPlan) return;
+    if (!user || !selectedPlan) return;
 
     const plan = plans.find(p => p.id === selectedPlan);
     if (!plan) return;
@@ -74,7 +74,7 @@ export function SubscriptionManager() {
     }
 
     const subscription: UserSubscription = {
-      userId: currentUser.id,
+      userId: user.id,
       planId: selectedPlan,
       interval,
       appAccess,
@@ -95,9 +95,9 @@ export function SubscriptionManager() {
   };
 
   const handleCancelSubscription = () => {
-    if (!currentUser) return;
+    if (!user) return;
 
-    LocalStorageService.cancelSubscription(currentUser.id);
+    LocalStorageService.cancelSubscription(user.id);
     setCurrentSubscription(null);
 
     toast({
@@ -107,7 +107,7 @@ export function SubscriptionManager() {
     });
   };
 
-  if (!currentUser) {
+  if (!user) {
     return (
       <Card>
         <CardContent className="text-center py-8">

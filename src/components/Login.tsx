@@ -4,27 +4,46 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 
 export function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { signIn, signUp } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const success = login(username, password);
-      if (success) {
-        toast.success('Connexion réussie !');
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast.error('Email ou mot de passe incorrect');
       } else {
-        toast.error('Nom d\'utilisateur ou mot de passe incorrect');
+        toast.success('Connexion réussie !');
       }
     } catch (error) {
       toast.error('Erreur lors de la connexion');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await signUp(email, password);
+      if (error) {
+        toast.error('Erreur lors de l\'inscription: ' + error.message);
+      } else {
+        toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
+      }
+    } catch (error) {
+      toast.error('Erreur lors de l\'inscription');
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +58,6 @@ export function Login() {
           <img
             src="/lovable-uploads/c7962c38-aebc-4ed0-b262-42d0ca641ab1.png"
             alt="Logo Xtreme Fitness"
-            /*className="mx-auto w-28 h-16 object-contain mb-4"*/
             className="mx-auto w-56 h-32 object-contain mb-4"
             loading="lazy"
             width={200}
@@ -52,46 +70,94 @@ export function Login() {
         </CardHeader>
         
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Nom d'utilisateur</Label>
-              <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Entrez votre nom d'utilisateur"
-                required
-                className="bg-muted/50"
-              />
-            </div>
+          <Tabs defaultValue="signin" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="signin">Connexion</TabsTrigger>
+              <TabsTrigger value="signup">Inscription</TabsTrigger>
+            </TabsList>
             
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Entrez votre mot de passe"
-                required
-                className="bg-muted/50"
-              />
-            </div>
+            <TabsContent value="signin">
+              <form onSubmit={handleSignIn} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signin-email">Email</Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Entrez votre email"
+                    required
+                    className="bg-muted/50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="signin-password">Mot de passe</Label>
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Entrez votre mot de passe"
+                    required
+                    className="bg-muted/50"
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Connexion...' : 'Se connecter'}
+                </Button>
+              </form>
+            </TabsContent>
             
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Connexion...' : 'Se connecter'}
-            </Button>
-          </form>
+            <TabsContent value="signup">
+              <form onSubmit={handleSignUp} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="signup-email">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Entrez votre email"
+                    required
+                    className="bg-muted/50"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password">Mot de passe</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Choisissez un mot de passe"
+                    required
+                    className="bg-muted/50"
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-primary hover:opacity-90 transition-all duration-300"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Inscription...' : 'S\'inscrire'}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
           
           <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-2">Comptes de démonstration :</p>
+            <p className="text-sm text-muted-foreground mb-2">Compte administrateur :</p>
             <div className="text-xs space-y-1">
-              <div><strong>Admin :</strong> admin / admin123</div>
+              <div><strong>Email :</strong> sportxtrem4@gmail.com</div>
+              <div className="text-xs text-muted-foreground">Utilisez la fonction "mot de passe oublié" pour définir votre mot de passe</div>
             </div>
           </div>
         </CardContent>
