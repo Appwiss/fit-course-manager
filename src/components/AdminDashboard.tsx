@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LocalStorageService } from '@/lib/localStorage';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Course, SubscriptionType } from '@/types/fitness';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,7 +82,7 @@ export function AdminDashboard() {
     setCourses(LocalStorageService.getCourses());
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newUser.username || !newUser.password || !newUser.email) {
@@ -89,30 +90,57 @@ export function AdminDashboard() {
       return;
     }
 
-    // Vérifier si l'utilisateur existe déjà
+    // Vérifier si l'utilisateur existe déjà dans localStorage
     const existingUser = users.find(u => u.username === newUser.username || u.email === newUser.email);
     if (existingUser) {
       toast.error('Un utilisateur avec ce nom ou email existe déjà');
       return;
     }
 
-    const user: User = {
-      id: `user-${Date.now()}`,
-      username: newUser.username,
-      password: newUser.password,
-      email: newUser.email,
-      subscription: newUser.subscription,
-      isAdmin: false,
-      accessibleCourses: [],
-      createdAt: new Date().toISOString(),
-      accountStatus: 'active'
-    };
+    try {
+      // Créer l'utilisateur dans Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: newUser.email,
+        password: newUser.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            username: newUser.username
+          }
+        }
+      });
 
-    LocalStorageService.addUser(user);
-    loadData();
-    setNewUser({ username: '', password: '', email: '', subscription: 'debutant' });
-    setShowCreateUser(false);
-    toast.success('Utilisateur créé avec succès');
+      if (error) {
+        toast.error(`Erreur lors de la création: ${error.message}`);
+        return;
+      }
+
+      if (data.user) {
+        // Créer le profil utilisateur
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            username: newUser.username,
+            email: newUser.email,
+            is_admin: false
+          });
+
+        if (profileError) {
+          console.error('Erreur profil:', profileError);
+          toast.error('Utilisateur créé mais erreur lors de la création du profil');
+        } else {
+          toast.success('Utilisateur créé avec succès! Il doit confirmer son email pour se connecter.');
+        }
+      }
+
+      loadData();
+      setNewUser({ username: '', password: '', email: '', subscription: 'debutant' });
+      setShowCreateUser(false);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors de la création de l\'utilisateur');
+    }
   };
 
   const handleToggleCourseAccess = (userId: string, courseId: string, hasAccess: boolean) => {
