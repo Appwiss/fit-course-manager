@@ -22,39 +22,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let mounted = true;
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         setSession(session);
         setUser(session?.user ?? null);
         
         // Check if user is admin
         if (session?.user) {
           setTimeout(async () => {
+            if (!mounted) return;
             const { data: profile } = await supabase
               .from('profiles')
               .select('is_admin')
               .eq('id', session.user.id)
               .single();
             
-            setIsAdmin(profile?.is_admin || false);
+            if (mounted) {
+              setIsAdmin(profile?.is_admin || false);
+            }
           }, 0);
         } else {
           setIsAdmin(false);
         }
         
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      if (!mounted) return;
+      // Only set initial state if no session from listener yet
+      if (session) {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
