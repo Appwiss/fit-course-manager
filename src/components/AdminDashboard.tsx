@@ -77,8 +77,35 @@ export function AdminDashboard() {
       });
     }
   }, [selectedUser]);
-  const loadData = () => {
-    setUsers(LocalStorageService.getUsers());
+
+  const loadData = async () => {
+    try {
+      // Charger les utilisateurs depuis Supabase
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_admin', false);
+
+      if (profiles) {
+        const formattedUsers: User[] = profiles.map(profile => ({
+          id: profile.id,
+          username: profile.username || profile.email,
+          email: profile.email,
+          password: '', // Ne pas exposer les mots de passe
+          subscription: 'debutant' as SubscriptionType,
+          isAdmin: false,
+          accessibleCourses: [],
+          createdAt: profile.created_at,
+          accountStatus: 'active'
+        }));
+        setUsers(formattedUsers);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+      // Fallback vers localStorage
+      setUsers(LocalStorageService.getUsers());
+    }
+    
     setCourses(LocalStorageService.getCourses());
   };
 
@@ -90,7 +117,7 @@ export function AdminDashboard() {
       return;
     }
 
-    // Vérifier si l'utilisateur existe déjà dans localStorage
+    // Vérifier si l'utilisateur existe déjà
     const existingUser = users.find(u => u.username === newUser.username || u.email === newUser.email);
     if (existingUser) {
       toast.error('Un utilisateur avec ce nom ou email existe déjà');
@@ -98,42 +125,22 @@ export function AdminDashboard() {
     }
 
     try {
-      // Créer l'utilisateur dans Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email: newUser.email,
-        password: newUser.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            username: newUser.username
-          }
+      // Utiliser la fonction Edge pour créer l'utilisateur sans connexion automatique
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: newUser.email,
+          password: newUser.password,
+          username: newUser.username
         }
       });
 
-      if (error) {
-        toast.error(`Erreur lors de la création: ${error.message}`);
+      if (error || data.error) {
+        toast.error(`Erreur lors de la création: ${data?.error || error.message}`);
         return;
       }
 
-      if (data.user) {
-        // Créer le profil utilisateur
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            username: newUser.username,
-            email: newUser.email,
-            is_admin: false
-          });
-
-        if (profileError) {
-          console.error('Erreur profil:', profileError);
-          toast.error('Utilisateur créé mais erreur lors de la création du profil');
-        } else {
-          toast.success('Utilisateur créé avec succès! Il doit confirmer son email pour se connecter.');
-        }
-      }
-
+      toast.success('Utilisateur créé avec succès! Il peut maintenant se connecter.');
+      
       loadData();
       setNewUser({ username: '', password: '', email: '', subscription: 'debutant' });
       setShowCreateUser(false);
