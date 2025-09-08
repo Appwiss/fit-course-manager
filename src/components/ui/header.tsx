@@ -40,7 +40,10 @@ export function Header({ onLogout, userInfo }: HeaderProps) {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={onLogout}
+          onClick={() => {
+            console.log('Bouton déconnexion cliqué');
+            onLogout();
+          }}
           className="flex items-center space-x-2"
         >
           <LogOut className="h-4 w-4" />
