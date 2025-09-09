@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,14 +50,97 @@ export function SubscriptionManagementAdmin() {
     loadData();
   }, []);
 
-  const loadData = () => {
-    setPlans(LocalStorageService.getSubscriptionPlans());
-    setUsers(LocalStorageService.getUsers().filter(u => !u.isAdmin));
-    setSubscriptions(LocalStorageService.getUserSubscriptions());
-    setKpi(LocalStorageService.getAccountsKPI());
+  const loadData = async () => {
+    try {
+      // Charger les plans depuis Supabase
+      const { data: plansData } = await supabase
+        .from('subscription_plans')
+        .select('*');
+      
+      if (plansData) {
+        const formattedPlans: SubscriptionPlan[] = plansData.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          level: plan.level,
+          monthlyPrice: parseFloat(plan.monthly_price.toString()),
+          annualPrice: parseFloat(plan.annual_price.toString()),
+          features: plan.features || [],
+          appAccess: plan.app_access,
+          isFamily: false
+        }));
+        setPlans(formattedPlans);
+      }
+
+      // Charger les utilisateurs depuis Supabase
+      const { data: usersData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_admin', false);
+      
+      if (usersData) {
+        const formattedUsers: User[] = usersData.map(profile => ({
+          id: profile.id,
+          username: profile.username || profile.email,
+          email: profile.email,
+          password: '',
+          subscription: 'debutant' as SubscriptionType,
+          isAdmin: false,
+          accessibleCourses: [],
+          createdAt: profile.created_at,
+          accountStatus: 'active'
+        }));
+        setUsers(formattedUsers);
+      }
+
+      // Charger les abonnements depuis Supabase
+      const { data: subscriptionsData } = await supabase
+        .from('user_subscriptions')
+        .select(`
+          *,
+          subscription_plans(name, level),
+          profiles(username, email)
+        `);
+      
+      if (subscriptionsData) {
+        const formattedSubs: UserSubscription[] = subscriptionsData.map(sub => ({
+          userId: sub.user_id,
+          planId: sub.plan_id,
+          interval: sub.interval,
+          appAccess: sub.app_access,
+          startDate: sub.start_date,
+          endDate: sub.end_date || '',
+          status: sub.status,
+          paymentMethod: sub.payment_method || 'Non spécifié',
+          nextPaymentDate: sub.next_payment_date || '',
+          overdueDate: sub.overdue_date
+        }));
+        setSubscriptions(formattedSubs);
+      }
+
+      // Calculer les KPI
+      const totalUsers = usersData?.length || 0;
+      const activeAccounts = subscriptionsData?.filter(s => s.status === 'active')?.length || 0;
+      const overdueAccounts = subscriptionsData?.filter(s => s.status === 'overdue')?.length || 0;
+      const cancelledAccounts = subscriptionsData?.filter(s => s.status === 'cancelled')?.length || 0;
+
+      setKpi({
+        totalUsers,
+        activeAccounts,
+        overdueAccounts,
+        cancelledAccounts
+      });
+
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les données",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleCreatePlan = () => {
+  const handleCreatePlan = async () => {
     if (!newPlan.name || !newPlan.monthlyPrice || !newPlan.annualPrice) {
       toast({
         title: "Erreur",
@@ -66,29 +150,39 @@ export function SubscriptionManagementAdmin() {
       return;
     }
 
-    const plan: SubscriptionPlan = {
-      id: `plan-${Date.now()}`,
-      name: newPlan.name,
-      level: newPlan.level,
-      monthlyPrice: parseFloat(newPlan.monthlyPrice),
-      annualPrice: parseFloat(newPlan.annualPrice),
-      features: newPlan.features.filter(f => f.trim() !== ''),
-      appAccess: false,
-      isFamily: newPlan.isFamily,
-    };
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .insert({
+          name: newPlan.name,
+          level: newPlan.level,
+          monthly_price: parseFloat(newPlan.monthlyPrice),
+          annual_price: parseFloat(newPlan.annualPrice),
+          features: newPlan.features.filter(f => f.trim() !== ''),
+          app_access: true
+        });
 
-    LocalStorageService.addSubscriptionPlan(plan);
-    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
-    setShowCreatePlan(false);
-    loadData();
+      if (error) throw error;
 
-    toast({
-      title: "Plan créé",
-      description: "Le plan d'abonnement a été créé avec succès"
-    });
+      setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
+      setShowCreatePlan(false);
+      loadData();
+
+      toast({
+        title: "Plan créé",
+        description: "Le plan d'abonnement a été créé avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création du plan:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le plan d'abonnement",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleAssignUser = () => {
+  const handleAssignUser = async () => {
     if (selectedUserIds.length === 0 || !assignForm.planId) {
       toast({
         title: "Erreur",
@@ -96,6 +190,48 @@ export function SubscriptionManagementAdmin() {
         variant: "destructive"
       });
       return;
+    }
+
+    try {
+      // Créer des abonnements pour tous les utilisateurs sélectionnés
+      const subscriptionsToCreate = selectedUserIds.map(userId => ({
+        user_id: userId,
+        plan_id: assignForm.planId,
+        interval: assignForm.interval,
+        app_access: assignForm.appAccess,
+        status: 'active' as const,
+        start_date: new Date().toISOString(),
+        end_date: assignForm.interval === 'mensuel' 
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        next_payment_date: assignForm.interval === 'mensuel'
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        payment_method: 'Assigné par admin'
+      }));
+
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .insert(subscriptionsToCreate);
+
+      if (error) throw error;
+
+      setSelectedUserIds([]);
+      setAssignForm({ userId: '', planId: '', interval: 'mensuel', appAccess: false });
+      setShowAssignUser(false);
+      loadData();
+
+      toast({
+        title: "Abonnements assignés",
+        description: `${selectedUserIds.length} utilisateur(s) ont été assigné(s) au plan`
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'assignation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'assigner les abonnements",
+        variant: "destructive"
+      });
     }
 
     let successCount = 0;
