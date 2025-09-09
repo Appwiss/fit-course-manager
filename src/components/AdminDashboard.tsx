@@ -102,8 +102,6 @@ export function AdminDashboard() {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error);
-      // Fallback vers localStorage
-      setUsers(LocalStorageService.getUsers());
     }
     
     // Charger les cours depuis Supabase
@@ -172,15 +170,43 @@ export function AdminDashboard() {
     }
   };
 
-  const handleToggleCourseAccess = (userId: string, courseId: string, hasAccess: boolean) => {
-    if (hasAccess) {
-      LocalStorageService.revokeCourseAccess(userId, courseId);
-      toast.success('Accès révoqué');
-    } else {
-      LocalStorageService.grantCourseAccess(userId, courseId);
-      toast.success('Accès accordé');
+  const handleToggleCourseAccess = async (userId: string, courseId: string, hasAccess: boolean) => {
+    try {
+      if (hasAccess) {
+        // Révoquer l'accès
+        const { error } = await supabase
+          .from('user_course_access')
+          .update({
+            has_access: false,
+            revoked_at: new Date().toISOString(),
+            reason: 'Révoqué par admin'
+          })
+          .eq('user_id', userId)
+          .eq('course_id', courseId);
+
+        if (error) throw error;
+        toast.success('Accès révoqué');
+      } else {
+        // Accorder l'accès
+        const { error } = await supabase
+          .from('user_course_access')
+          .upsert({
+            user_id: userId,
+            course_id: courseId,
+            has_access: true,
+            granted_at: new Date().toISOString(),
+            reason: 'Accordé par admin',
+            override_subscription: true
+          });
+
+        if (error) throw error;
+        toast.success('Accès accordé');
+      }
+      loadData();
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'accès:', error);
+      toast.error('Erreur lors de la mise à jour de l\'accès');
     }
-    loadData();
   };
 
   const handleDeleteUser = (userId: string) => {
@@ -213,7 +239,7 @@ export function AdminDashboard() {
     }
   };
 
-  const handleCreateCourse = (e: React.FormEvent) => {
+  const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newCourse.title || !newCourse.description || !newCourse.videoUrl || !newCourse.category || !newCourse.instructor) {
@@ -221,36 +247,41 @@ export function AdminDashboard() {
       return;
     }
 
-    const course: Course = {
-      id: `course-${Date.now()}`,
-      title: newCourse.title,
-      description: newCourse.description,
-      videoUrl: newCourse.videoUrl,
-      level: newCourse.level,
-      category: newCourse.category,
-      duration: newCourse.duration,
-      instructor: newCourse.instructor,
-      thumbnail: newCourse.thumbnail || undefined
-    };
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .insert({
+          title: newCourse.title,
+          description: newCourse.description,
+          video_url: newCourse.videoUrl,
+          level: newCourse.level,
+          category: newCourse.category,
+          duration: newCourse.duration,
+          instructor: newCourse.instructor,
+          thumbnail: newCourse.thumbnail || null
+        });
 
-    const courses = LocalStorageService.getCourses();
-    courses.push(course);
-    LocalStorageService.saveCourses(courses);
-    loadData();
-    setNewCourse({
-      title: '',
-      description: '',
-      videoUrl: '',
-      level: 'debutant',
-      category: '',
-      duration: 30,
-      instructor: '',
-      thumbnail: ''
-    });
-    setVideoFile(null);
-    setVideoInputType('url');
-    setShowCreateCourse(false);
-    toast.success('Cours créé avec succès');
+      if (error) throw error;
+
+      loadData();
+      setNewCourse({
+        title: '',
+        description: '',
+        videoUrl: '',
+        level: 'debutant',
+        category: '',
+        duration: 30,
+        instructor: '',
+        thumbnail: ''
+      });
+      setVideoFile(null);
+      setVideoInputType('url');
+      setShowCreateCourse(false);
+      toast.success('Cours créé avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la création du cours:', error);
+      toast.error('Erreur lors de la création du cours');
+    }
   };
 
   const handleUpdateCourse = (e: React.FormEvent) => {

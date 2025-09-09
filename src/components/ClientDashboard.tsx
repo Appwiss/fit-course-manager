@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { LocalStorageService } from '@/lib/localStorage';
 import { Course, SubscriptionType } from '@/types/fitness';
 import { Button } from '@/components/ui/button';

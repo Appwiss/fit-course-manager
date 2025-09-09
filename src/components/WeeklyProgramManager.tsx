@@ -89,9 +89,6 @@ export function WeeklyProgramManager() {
       }
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
-      // Fallback vers localStorage
-      setPrograms(LocalStorageService.getWeeklyPrograms());
-      setCourses(LocalStorageService.getCourses());
     }
   };
 
