@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Check, Crown, Star, Zap } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
 import { LocalStorageService } from "@/lib/localStorage";
 import { SubscriptionPlan, UserSubscription, PaymentInterval } from "@/types/fitness";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,19 +23,60 @@ export function SubscriptionManager() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const subscriptionPlans = LocalStorageService.getSubscriptionPlans();
-    setPlans(subscriptionPlans);
-
-    if (user) {
-      const userSub = LocalStorageService.getUserSubscription(user.id);
-      setCurrentSubscription(userSub);
-      if (userSub) {
-        setSelectedPlan(userSub.planId);
-        setInterval(userSub.interval);
-        setAppAccess(userSub.appAccess);
-      }
-    }
+    loadData();
   }, [user]);
+
+  const loadData = async () => {
+    try {
+      // Charger les plans depuis Supabase
+      const { data: plansData } = await supabase
+        .from('subscription_plans')
+        .select('*');
+      
+      if (plansData) {
+        const formattedPlans: SubscriptionPlan[] = plansData.map(plan => ({
+          id: plan.id,
+          name: plan.name,
+          level: plan.level,
+          monthlyPrice: parseFloat(plan.monthly_price.toString()),
+          annualPrice: parseFloat(plan.annual_price.toString()),
+          features: plan.features || [],
+          appAccess: plan.app_access
+        }));
+        setPlans(formattedPlans);
+      }
+
+      // Charger l'abonnement de l'utilisateur si connecté
+      if (user) {
+        const { data: userSubData } = await supabase
+          .from('user_subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single();
+        
+        if (userSubData) {
+          const userSub: UserSubscription = {
+            userId: userSubData.user_id,
+            planId: userSubData.plan_id,
+            interval: userSubData.interval,
+            appAccess: userSubData.app_access,
+            startDate: userSubData.start_date,
+            endDate: userSubData.end_date || '',
+            status: userSubData.status,
+            paymentMethod: userSubData.payment_method || '',
+            nextPaymentDate: userSubData.next_payment_date || ''
+          };
+          setCurrentSubscription(userSub);
+          setSelectedPlan(userSub.planId);
+          setInterval(userSub.interval);
+          setAppAccess(userSub.appAccess);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    }
+  };
 
   const getPrice = (plan: SubscriptionPlan) => {
     const basePrice = interval === 'mensuel' ? plan.monthlyPrice : plan.annualPrice;

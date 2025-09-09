@@ -106,7 +106,29 @@ export function AdminDashboard() {
       setUsers(LocalStorageService.getUsers());
     }
     
-    setCourses(LocalStorageService.getCourses());
+    // Charger les cours depuis Supabase
+    try {
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('*');
+      
+      if (coursesData) {
+        const formattedCourses: Course[] = coursesData.map(course => ({
+          id: course.id,
+          title: course.title,
+          description: course.description || '',
+          videoUrl: course.video_url || '',
+          level: course.level,
+          category: course.category || '',
+          duration: course.duration || 30,
+          instructor: course.instructor || '',
+          thumbnail: course.thumbnail || ''
+        }));
+        setCourses(formattedCourses);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des cours:', error);
+    }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {

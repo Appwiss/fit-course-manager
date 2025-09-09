@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { LocalStorageService } from '@/lib/localStorage';
 import { WeeklyProgram, DaySchedule, Course } from '@/types/fitness';
 import { Button } from '@/components/ui/button';
@@ -35,9 +36,63 @@ export function WeeklyProgramManager() {
     loadData();
   }, []);
 
-  const loadData = () => {
-    setPrograms(LocalStorageService.getWeeklyPrograms());
-    setCourses(LocalStorageService.getCourses());
+  const loadData = async () => {
+    try {
+      // Charger les programmes depuis Supabase
+      const { data: programsData } = await supabase
+        .from('weekly_programs')
+        .select(`
+          *,
+          day_schedules(
+            *,
+            schedule_courses(course_id, order_index)
+          )
+        `);
+      
+      if (programsData) {
+        const formattedPrograms = programsData.map((program: any) => ({
+          id: program.id,
+          name: program.name,
+          description: program.description || '',
+          createdAt: program.created_at,
+          schedule: program.day_schedules.map((schedule: any) => ({
+            dayOfWeek: schedule.day_of_week,
+            dayName: schedule.day_name,
+            isRestDay: schedule.is_rest_day,
+            courses: schedule.schedule_courses
+              .sort((a: any, b: any) => a.order_index - b.order_index)
+              .map((sc: any) => sc.course_id),
+            restDescription: schedule.rest_description
+          }))
+        }));
+        setPrograms(formattedPrograms);
+      }
+
+      // Charger les cours depuis Supabase
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('*');
+      
+      if (coursesData) {
+        const formattedCourses: Course[] = coursesData.map(course => ({
+          id: course.id,
+          title: course.title,
+          description: course.description || '',
+          videoUrl: course.video_url || '',
+          level: course.level,
+          category: course.category || '',
+          duration: course.duration || 30,
+          instructor: course.instructor || '',
+          thumbnail: course.thumbnail || ''
+        }));
+        setCourses(formattedCourses);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+      // Fallback vers localStorage
+      setPrograms(LocalStorageService.getWeeklyPrograms());
+      setCourses(LocalStorageService.getCourses());
+    }
   };
 
   const createDefaultSchedule = (): DaySchedule[] => {

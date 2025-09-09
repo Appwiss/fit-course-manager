@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -17,14 +18,79 @@ export function ShopManager() {
   const [image, setImage] = useState('');
 
   useEffect(() => {
-    setProducts(LocalStorageService.getProducts());
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (productsData) {
+        const formattedProducts = productsData.map((product: any) => ({
+          id: product.id,
+          label: product.label,
+          description: product.description || '',
+          price: parseFloat(product.price.toString()),
+          image: product.image || '',
+          createdAt: product.created_at
+        }));
+        setProducts(formattedProducts);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des produits:', error);
+    }
+  };
 
   const resetForm = () => {
     setLabel('');
     setDescription('');
     setPrice('');
     setImage('');
+  };
+
+  const handleCreateProduct = async () => {
+    if (!label || !price) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('products')
+        .insert({
+          label,
+          description,
+          price: parseFloat(price),
+          image
+        });
+
+      if (error) throw error;
+
+      resetForm();
+      loadData();
+      toast.success('Produit créé avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la création du produit:', error);
+      toast.error('Erreur lors de la création du produit');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      loadData();
+      toast.success('Produit supprimé');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du produit:', error);
+      toast.error('Erreur lors de la suppression du produit');
+    }
   };
 
   const handleCreate = (e: React.FormEvent) => {
@@ -39,25 +105,7 @@ export function ShopManager() {
       return;
     }
 
-    const product: Product = {
-      id: `product-${Date.now()}`,
-      label: label.trim(),
-      description: description.trim(),
-      price: parseFloat(price),
-      image: image || undefined,
-      createdAt: new Date().toISOString(),
-    };
-
-    LocalStorageService.addProduct(product);
-    setProducts(LocalStorageService.getProducts());
-    resetForm();
-    toast.success('Produit créé avec succès');
-  };
-
-  const handleDelete = (id: string) => {
-    LocalStorageService.deleteProduct(id);
-    setProducts(LocalStorageService.getProducts());
-    toast.success('Produit supprimé');
+    handleCreateProduct();
   };
 
   return (
@@ -106,7 +154,7 @@ export function ShopManager() {
                   <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-medium">{p.price.toFixed(2)} DT</span>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(p.id)}>Supprimer</Button>
+                     <Button variant="destructive" size="sm" onClick={() => handleDelete(p.id)}>Supprimer</Button>
                   </div>
                 </div>
               </CardContent>
