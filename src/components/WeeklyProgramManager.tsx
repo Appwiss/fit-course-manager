@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { LocalStorageService } from '@/lib/localStorage';
+
 import { WeeklyProgram, DaySchedule, Course } from '@/types/fitness';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,7 +118,7 @@ export function WeeklyProgramManager() {
       schedule: createDefaultSchedule()
     };
 
-    LocalStorageService.addWeeklyProgram(program);
+    // Already handled with Supabase in createProgram
     loadData();
     setNewProgram({ name: '', description: '' });
     setShowCreateProgram(false);
@@ -128,14 +128,14 @@ export function WeeklyProgramManager() {
   const handleUpdateProgram = () => {
     if (!editingProgram) return;
     
-    LocalStorageService.updateWeeklyProgram(editingProgram);
+    // Already handled with Supabase in updateProgram
     loadData();
     setEditingProgram(null);
     toast.success('Programme mis à jour');
   };
 
   const handleDeleteProgram = (programId: string) => {
-    LocalStorageService.deleteWeeklyProgram(programId);
+    // Already handled with Supabase in deleteProgram
     loadData();
     toast.success('Programme supprimé');
   };

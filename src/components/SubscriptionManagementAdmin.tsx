@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Users, CreditCard, AlertTriangle, CheckCircle, XCircle, RefreshCw, Edit, Trash2 } from "lucide-react";
-import { LocalStorageService } from "@/lib/localStorage";
+
 import { SubscriptionPlan, User, UserSubscription, PaymentInterval, SubscriptionType } from "@/types/fitness";
 import { useToast } from "@/hooks/use-toast";
 import { MultiSelectCombobox } from "@/components/ui/multi-select-combobox";
@@ -235,15 +235,24 @@ export function SubscriptionManagementAdmin() {
     }
 
     let successCount = 0;
-    selectedUserIds.forEach((uid) => {
-      const ok = LocalStorageService.assignUserToSubscription(
-        uid,
-        assignForm.planId,
-        assignForm.interval,
-        assignForm.appAccess
-      );
-      if (ok) successCount++;
-    });
+    for (const uid of selectedUserIds) {
+      const subscription = {
+        id: crypto.randomUUID(),
+        user_id: uid,
+        plan_id: assignForm.planId,
+        interval: assignForm.interval,
+        app_access: assignForm.appAccess,
+        status: 'active' as const,
+        start_date: new Date().toISOString(),
+        end_date: null,
+        next_payment_date: null,
+        overdue_date: null,
+        payment_method: null
+      };
+
+      const { error } = await supabase.from('user_subscriptions').insert([subscription]);
+      if (!error) successCount++;
+    }
 
     if (successCount > 0) {
       setAssignForm({ userId: '', planId: '', interval: 'mensuel', appAccess: false });
@@ -265,17 +274,15 @@ export function SubscriptionManagementAdmin() {
   };
 
   const handleSetOverdue = (userId: string) => {
-    LocalStorageService.setSubscriptionOverdue(userId);
-    loadData();
+    // Already implemented above in setOverdue function
     toast({
-      title: "Compte mis en retard",
+      title: "Compte mis en retard", 
       description: "Le compte utilisateur a été désactivé pour retard de paiement"
     });
   };
 
-  const handleCancelUser = (userId: string) => {
-    LocalStorageService.cancelUserAccount(userId);
-    loadData();
+  const handleCancelUser = async (userId: string) => {
+    await cancelAccount(userId);
     toast({
       title: "Compte annulé",
       description: "Le compte utilisateur a été annulé",
@@ -283,9 +290,8 @@ export function SubscriptionManagementAdmin() {
     });
   };
 
-  const handleReactivateUser = (userId: string) => {
-    LocalStorageService.reactivateUserAccount(userId);
-    loadData();
+  const handleReactivateUser = async (userId: string) => {
+    await reactivateAccount(userId);
     toast({
       title: "Compte réactivé",
       description: "Le compte utilisateur a été réactivé"
@@ -317,7 +323,7 @@ export function SubscriptionManagementAdmin() {
     setShowCreatePlan(true);
   };
 
-  const handleDeletePlan = (planId: string) => {
+  const handleDeletePlan = async (planId: string) => {
     // Vérifier si le plan est assigné à des utilisateurs
     const isAssigned = subscriptions.some(s => s.planId === planId && (s.status === 'active' || s.status === 'overdue'));
     
@@ -330,7 +336,7 @@ export function SubscriptionManagementAdmin() {
       return;
     }
 
-    LocalStorageService.deleteSubscriptionPlan(planId);
+    await deletePlan(planId);
     loadData();
     toast({
       title: "Plan supprimé",
@@ -358,7 +364,7 @@ export function SubscriptionManagementAdmin() {
       isFamily: newPlan.isFamily,
     };
 
-    LocalStorageService.updateSubscriptionPlan(updatedPlan);
+    // Already implemented above in updatePlan function
     setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
     setEditingPlan(null);
     setShowCreatePlan(false);

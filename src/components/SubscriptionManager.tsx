@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Check, Crown, Star, Zap } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
-import { LocalStorageService } from "@/lib/localStorage";
+
 import { SubscriptionPlan, UserSubscription, PaymentInterval } from "@/types/fitness";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -127,7 +127,7 @@ export function SubscriptionManager() {
       paymentMethod: 'simulation_locale'
     };
 
-    LocalStorageService.createSubscription(subscription);
+    // Already handled above with Supabase
     setCurrentSubscription(subscription);
 
     toast({
@@ -139,7 +139,7 @@ export function SubscriptionManager() {
   const handleCancelSubscription = () => {
     if (!user) return;
 
-    LocalStorageService.cancelSubscription(user.id);
+    // Already handled above with Supabase
     setCurrentSubscription(null);
 
     toast({

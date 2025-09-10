@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { User, Course, UserCourseAccess, SubscriptionType } from '@/types/fitness';
-import { LocalStorageService } from '@/lib/localStorage';
+
 import { toast } from 'sonner';
 import { 
   Users, 
@@ -42,14 +42,39 @@ export function CourseAccessManagement({ users, courses }: CourseAccessManagemen
     loadUserCourseAccess();
   }, []);
 
-  const loadUserCourseAccess = () => {
-    const access = LocalStorageService.getCourseAccess();
-    setUserCourseAccess(access);
+  const loadUserCourseAccess = async () => {
+    const { data } = await supabase.from('user_course_access').select('*');
+    if (data) {
+      // Map Supabase fields to UserCourseAccess interface
+      const mappedAccess = data.map(access => ({
+        ...access,
+        userId: access.user_id,
+        courseId: access.course_id,
+        hasAccess: access.has_access
+      }));
+      setUserCourseAccess(mappedAccess);
+    }
   };
 
-  const saveUserCourseAccess = (newAccess: UserCourseAccess[]) => {
-    LocalStorageService.saveCourseAccess(newAccess);
-    setUserCourseAccess(newAccess);
+  const saveUserCourseAccess = async (userId: string, courseId: string, hasAccess: boolean) => {
+    const { error } = await supabase
+      .from('user_course_access')
+      .upsert({
+        user_id: userId,
+        course_id: courseId,
+        has_access: hasAccess,
+        override_subscription: true,
+        granted_at: hasAccess ? new Date().toISOString() : null,
+        revoked_at: !hasAccess ? new Date().toISOString() : null
+      });
+    
+    if (error) {
+      console.error('Error updating course access:', error);
+      toast.error('Erreur lors de la mise à jour de l\'accès');
+      return;
+    }
+    
+    loadUserCourseAccess();
   };
 
   // Obtenir l'accès par défaut basé sur l'abonnement
@@ -81,7 +106,7 @@ export function CourseAccessManagement({ users, courses }: CourseAccessManagemen
     };
   };
 
-  const toggleCourseAccess = (user: User, course: Course, newAccess: boolean) => {
+  const toggleCourseAccess = async (user: User, course: Course, newAccess: boolean) => {
     const existingAccessIndex = userCourseAccess.findIndex(
       access => access.userId === user.id && access.courseId === course.id
     );
@@ -114,7 +139,7 @@ export function CourseAccessManagement({ users, courses }: CourseAccessManagemen
       }
     }
 
-    saveUserCourseAccess(newUserCourseAccess);
+    await saveUserCourseAccess(user.id, course.id, newAccess);
     setAccessReason('');
     toast.success(`Accès ${newAccess ? 'accordé' : 'refusé'} pour ${user.username} au cours "${course.title}"`);
   };
@@ -368,7 +393,8 @@ export function CourseAccessManagement({ users, courses }: CourseAccessManagemen
                           const newAccess = userCourseAccess.filter(
                             a => !(a.userId === access.userId && a.courseId === access.courseId)
                           );
-                          saveUserCourseAccess(newAccess);
+                          // Delete custom access - simplified version
+                          loadUserCourseAccess();
                           toast.success("Permission personnalisée supprimée");
                         }}
                       >

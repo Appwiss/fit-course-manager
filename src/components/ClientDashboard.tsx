@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { LocalStorageService } from '@/lib/localStorage';
+
 import { Course, SubscriptionType } from '@/types/fitness';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,20 +17,36 @@ export function ClientDashboard() {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   useEffect(() => {
-    setCourses(LocalStorageService.getCourses());
+    loadCourses();
   }, []);
+
+  const loadCourses = async () => {
+    const { data } = await supabase.from('courses').select('*');
+    if (data) {
+      // Map Supabase fields to Course interface
+      const mappedCourses = data.map(course => ({
+        ...course,
+        videoUrl: course.video_url
+      }));
+      setCourses(mappedCourses);
+    }
+  };
 
   const canAccessBySubscription = (userSubscription: SubscriptionType, courseLevel: SubscriptionType) => {
     const levels = { debutant: 1, medium: 2, expert: 3 };
     return levels[userSubscription] >= levels[courseLevel];
   };
 
-  const hasCustomAccess = (courseId: string) => {
-    const courseAccess = LocalStorageService.getCourseAccess();
-    const customAccess = courseAccess.find(
-      access => access.userId === user!.id && access.courseId === courseId && access.overrideSubscription
-    );
-    return customAccess ? customAccess.hasAccess : null;
+  const hasCustomAccess = async (courseId: string) => {
+    const { data } = await supabase
+      .from('user_course_access')
+      .select('*')
+      .eq('user_id', user!.id)
+      .eq('course_id', courseId)
+      .eq('override_subscription', true)
+      .single();
+    
+    return data ? data.has_access : null;
   };
 
   const canAccessCourse = (course: Course) => {
