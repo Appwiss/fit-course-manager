@@ -233,52 +233,33 @@ export function SubscriptionManagementAdmin() {
         variant: "destructive"
       });
     }
+  };
 
-    let successCount = 0;
-    for (const uid of selectedUserIds) {
-      const subscription = {
-        id: crypto.randomUUID(),
-        user_id: uid,
-        plan_id: assignForm.planId,
-        interval: assignForm.interval,
-        app_access: assignForm.appAccess,
-        status: 'active' as const,
-        start_date: new Date().toISOString(),
-        end_date: null,
-        next_payment_date: null,
-        overdue_date: null,
-        payment_method: null
-      };
+  const handleSetOverdue = async (userId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ 
+          status: 'overdue',
+          overdue_date: new Date().toISOString()
+        })
+        .eq('user_id', userId);
 
-      const { error } = await supabase.from('user_subscriptions').insert([subscription]);
-      if (!error) successCount++;
-    }
+      if (error) throw error;
 
-    if (successCount > 0) {
-      setAssignForm({ userId: '', planId: '', interval: 'mensuel', appAccess: false });
-      setSelectedUserIds([]);
-      setShowAssignUser(false);
       loadData();
-
       toast({
-        title: "Abonnement assigné",
-        description: `${successCount} utilisateur${successCount > 1 ? 's' : ''} assigné${successCount > 1 ? 's' : ''} au plan avec succès`
+        title: "Compte mis en retard", 
+        description: "Le compte utilisateur a été désactivé pour retard de paiement"
       });
-    } else {
+    } catch (error) {
+      console.error('Erreur lors de la mise en retard:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'assigner l'abonnement",
+        description: "Impossible de mettre le compte en retard",
         variant: "destructive"
       });
     }
-  };
-
-  const handleSetOverdue = (userId: string) => {
-    // Already implemented above in setOverdue function
-    toast({
-      title: "Compte mis en retard", 
-      description: "Le compte utilisateur a été désactivé pour retard de paiement"
-    });
   };
 
   const handleCancelUser = async (userId: string) => {
@@ -390,7 +371,7 @@ export function SubscriptionManagementAdmin() {
     }
   };
 
-  const handleUpdatePlan = () => {
+  const handleUpdatePlan = async () => {
     if (!editingPlan || !newPlan.name || !newPlan.monthlyPrice || !newPlan.annualPrice) {
       toast({
         title: "Erreur",
@@ -400,26 +381,37 @@ export function SubscriptionManagementAdmin() {
       return;
     }
 
-    const updatedPlan: SubscriptionPlan = {
-      ...editingPlan,
-      name: newPlan.name,
-      level: newPlan.level,
-      monthlyPrice: parseFloat(newPlan.monthlyPrice),
-      annualPrice: parseFloat(newPlan.annualPrice),
-      features: newPlan.features.filter(f => f.trim() !== ''),
-      isFamily: newPlan.isFamily,
-    };
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .update({
+          name: newPlan.name,
+          level: newPlan.level,
+          monthly_price: parseFloat(newPlan.monthlyPrice),
+          annual_price: parseFloat(newPlan.annualPrice),
+          features: newPlan.features.filter(f => f.trim() !== '')
+        })
+        .eq('id', editingPlan.id);
 
-    // Already implemented above in updatePlan function
-    setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
-    setEditingPlan(null);
-    setShowCreatePlan(false);
-    loadData();
+      if (error) throw error;
 
-    toast({
-      title: "Plan mis à jour",
-      description: "Le plan d'abonnement a été mis à jour avec succès"
-    });
+      setNewPlan({ name: '', level: 'debutant', monthlyPrice: '', annualPrice: '', features: [''], isFamily: false });
+      setEditingPlan(null);
+      setShowCreatePlan(false);
+      loadData();
+
+      toast({
+        title: "Plan mis à jour",
+        description: "Le plan d'abonnement a été mis à jour avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du plan:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le plan d'abonnement",
+        variant: "destructive"
+      });
+    }
   };
 
   const cancelEdit = () => {
