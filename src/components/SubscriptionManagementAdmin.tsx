@@ -77,8 +77,9 @@ export function SubscriptionManagementAdmin() {
         .select('*')
         .eq('is_admin', false);
       
+      let formattedUsers: User[] = [];
       if (usersData) {
-        const formattedUsers: User[] = usersData.map(profile => ({
+        formattedUsers = usersData.map(profile => ({
           id: profile.id,
           username: profile.username || profile.email,
           email: profile.email,
@@ -123,11 +124,20 @@ export function SubscriptionManagementAdmin() {
       const overdueAccounts = subscriptionsData?.filter(s => s.status === 'overdue')?.length || 0;
       const cancelledAccounts = subscriptionsData?.filter(s => s.status === 'cancelled')?.length || 0;
 
+      // Récupérer les utilisateurs en retard et annulés
+      const overdueUserIds = subscriptionsData?.filter(s => s.status === 'overdue').map(s => s.user_id) || [];
+      const cancelledUserIds = subscriptionsData?.filter(s => s.status === 'cancelled').map(s => s.user_id) || [];
+      
+      const overdueUsers = formattedUsers.filter(u => overdueUserIds.includes(u.id));
+      const cancelledUsers = formattedUsers.filter(u => cancelledUserIds.includes(u.id));
+
       setKpi({
         total: totalUsers,
         active: activeAccounts,
         overdue: overdueAccounts,
-        cancelled: cancelledAccounts
+        cancelled: cancelledAccounts,
+        overdueUsers: overdueUsers,
+        cancelledUsers: cancelledUsers
       });
 
     } catch (error) {
@@ -904,7 +914,7 @@ export function SubscriptionManagementAdmin() {
               <CardDescription>Comptes désactivés et annulés</CardDescription>
             </CardHeader>
             <CardContent>
-              {kpi && kpi.overdueUsers.length > 0 && (
+              {kpi && kpi.overdueUsers && kpi.overdueUsers.length > 0 && (
                 <>
                   <h3 className="font-medium mb-2">Comptes en retard de paiement ({kpi.overdue})</h3>
                   <div className="space-y-2 mb-6">
@@ -956,7 +966,7 @@ export function SubscriptionManagementAdmin() {
                 </>
               )}
 
-              {kpi && kpi.cancelledUsers.length > 0 && (
+              {kpi && kpi.cancelledUsers && kpi.cancelledUsers.length > 0 && (
                 <>
                   <h3 className="font-medium mb-2">Comptes annulés ({kpi.cancelled})</h3>
                   <div className="space-y-2">
