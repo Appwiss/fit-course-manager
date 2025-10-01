@@ -111,14 +111,6 @@ export function Login() {
               {isLoading ? 'Connexion...' : 'Se connecter'}
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-2">Compte administrateur :</p>
-            <div className="text-xs space-y-1">
-              <div><strong>Email :</strong> sportxtrem4@gmail.com</div>
-              <div className="text-xs text-muted-foreground">Utilisez la fonction "mot de passe oublié" pour définir votre mot de passe</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
