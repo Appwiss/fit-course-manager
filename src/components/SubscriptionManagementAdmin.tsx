@@ -282,20 +282,51 @@ export function SubscriptionManagementAdmin() {
   };
 
   const handleCancelUser = async (userId: string) => {
-    await cancelAccount(userId);
-    toast({
-      title: "Compte annulé",
-      description: "Le compte utilisateur a été annulé",
-      variant: "destructive"
-    });
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      loadData();
+      toast({
+        title: "Compte annulé",
+        description: "Le compte utilisateur a été annulé"
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'annuler le compte",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleReactivateUser = async (userId: string) => {
-    await reactivateAccount(userId);
-    toast({
-      title: "Compte réactivé",
-      description: "Le compte utilisateur a été réactivé"
-    });
+    try {
+      const { error } = await supabase
+        .from('user_subscriptions')
+        .update({ status: 'active' })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      loadData();
+      toast({
+        title: "Compte réactivé",
+        description: "Le compte utilisateur a été réactivé"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la réactivation:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de réactiver le compte",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditPlan = (plan: SubscriptionPlan) => {
@@ -336,12 +367,27 @@ export function SubscriptionManagementAdmin() {
       return;
     }
 
-    await deletePlan(planId);
-    loadData();
-    toast({
-      title: "Plan supprimé",
-      description: "Le plan d'abonnement a été supprimé avec succès"
-    });
+    try {
+      const { error } = await supabase
+        .from('subscription_plans')
+        .delete()
+        .eq('id', planId);
+
+      if (error) throw error;
+
+      loadData();
+      toast({
+        title: "Plan supprimé",
+        description: "Le plan d'abonnement a été supprimé avec succès"
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le plan",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleUpdatePlan = () => {
