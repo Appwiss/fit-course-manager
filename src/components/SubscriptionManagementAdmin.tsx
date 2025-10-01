@@ -158,7 +158,7 @@ export function SubscriptionManagementAdmin() {
           level: newPlan.level,
           monthly_price: parseFloat(newPlan.monthlyPrice),
           annual_price: parseFloat(newPlan.annualPrice),
-          features: newPlan.features.filter(f => f.trim() !== ''),
+          features: (newPlan.features || []).filter(f => f.trim() !== ''),
           app_access: true
         });
 
@@ -329,7 +329,7 @@ export function SubscriptionManagementAdmin() {
       level: plan.level,
       monthlyPrice: plan.monthlyPrice.toString(),
       annualPrice: plan.annualPrice.toString(),
-      features: plan.features,
+      features: plan.features || [''],
       isFamily: plan.isFamily ?? false,
     });
     setShowCreatePlan(true);
@@ -389,7 +389,7 @@ export function SubscriptionManagementAdmin() {
           level: newPlan.level,
           monthly_price: parseFloat(newPlan.monthlyPrice),
           annual_price: parseFloat(newPlan.annualPrice),
-          features: newPlan.features.filter(f => f.trim() !== '')
+          features: (newPlan.features || []).filter(f => f.trim() !== '')
         })
         .eq('id', editingPlan.id);
 
@@ -421,17 +421,17 @@ export function SubscriptionManagementAdmin() {
   };
 
   const addFeature = () => {
-    setNewPlan({ ...newPlan, features: [...newPlan.features, ''] });
+    setNewPlan({ ...newPlan, features: [...(newPlan.features || []), ''] });
   };
 
   const updateFeature = (index: number, value: string) => {
-    const features = [...newPlan.features];
+    const features = [...(newPlan.features || [])];
     features[index] = value;
     setNewPlan({ ...newPlan, features });
   };
 
   const removeFeature = (index: number) => {
-    const features = newPlan.features.filter((_, i) => i !== index);
+    const features = (newPlan.features || []).filter((_, i) => i !== index);
     setNewPlan({ ...newPlan, features });
   };
 
@@ -586,7 +586,7 @@ export function SubscriptionManagementAdmin() {
                     </div>
                     <div>
                       <Label>Fonctionnalités</Label>
-                      {newPlan.features.map((feature, index) => (
+                      {(newPlan.features || []).map((feature, index) => (
                         <div key={index} className="flex gap-2 mt-2">
                           <Input
                             value={feature}
@@ -679,9 +679,13 @@ export function SubscriptionManagementAdmin() {
                           </div>
 
                           <ul className="space-y-1">
-                            {plan.features.map((feature, index) => (
-                              <li key={index} className="text-sm">• {feature}</li>
-                            ))}
+                            {plan.features && plan.features.length > 0 ? (
+                              plan.features.map((feature, index) => (
+                                <li key={index} className="text-sm">• {feature}</li>
+                              ))
+                            ) : (
+                              <li className="text-sm text-muted-foreground">Aucune fonctionnalité</li>
+                            )}
                           </ul>
                           
                           {isAssigned && (
