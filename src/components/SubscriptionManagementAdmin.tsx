@@ -124,10 +124,10 @@ export function SubscriptionManagementAdmin() {
       const cancelledAccounts = subscriptionsData?.filter(s => s.status === 'cancelled')?.length || 0;
 
       setKpi({
-        totalUsers,
-        activeAccounts,
-        overdueAccounts,
-        cancelledAccounts
+        total: totalUsers,
+        active: activeAccounts,
+        overdue: overdueAccounts,
+        cancelled: cancelledAccounts
       });
 
     } catch (error) {
