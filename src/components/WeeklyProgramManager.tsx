@@ -102,7 +102,7 @@ export function WeeklyProgramManager() {
     }));
   };
 
-  const handleCreateProgram = (e: React.FormEvent) => {
+  const handleCreateProgram = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!newProgram.name.trim()) {
@@ -110,34 +110,108 @@ export function WeeklyProgramManager() {
       return;
     }
 
-    const program: WeeklyProgram = {
-      id: `program-${Date.now()}`,
-      name: newProgram.name,
-      description: newProgram.description,
-      createdAt: new Date().toISOString(),
-      schedule: createDefaultSchedule()
-    };
+    try {
+      const schedule = createDefaultSchedule();
+      
+      const { data, error } = await supabase.functions.invoke('create-weekly-program', {
+        body: {
+          name: newProgram.name,
+          description: newProgram.description,
+          schedule: schedule
+        }
+      });
 
-    // Already handled with Supabase in createProgram
-    loadData();
-    setNewProgram({ name: '', description: '' });
-    setShowCreateProgram(false);
-    toast.success('Programme créé avec succès');
+      if (error) throw error;
+
+      await loadData();
+      setNewProgram({ name: '', description: '' });
+      setShowCreateProgram(false);
+      toast.success('Programme créé avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la création du programme:', error);
+      toast.error('Erreur lors de la création du programme');
+    }
   };
 
-  const handleUpdateProgram = () => {
+  const handleUpdateProgram = async () => {
     if (!editingProgram) return;
     
-    // Already handled with Supabase in updateProgram
-    loadData();
-    setEditingProgram(null);
-    toast.success('Programme mis à jour');
+    try {
+      // Update program name and description
+      const { error: programError } = await supabase
+        .from('weekly_programs')
+        .update({
+          name: editingProgram.name,
+          description: editingProgram.description
+        })
+        .eq('id', editingProgram.id);
+
+      if (programError) throw programError;
+
+      // Delete existing day schedules and courses
+      const { error: deleteError } = await supabase
+        .from('day_schedules')
+        .delete()
+        .eq('program_id', editingProgram.id);
+
+      if (deleteError) throw deleteError;
+
+      // Recreate day schedules with courses
+      for (const daySchedule of editingProgram.schedule) {
+        const { data: dayScheduleData, error: dayError } = await supabase
+          .from('day_schedules')
+          .insert({
+            program_id: editingProgram.id,
+            day_of_week: daySchedule.dayOfWeek,
+            day_name: daySchedule.dayName,
+            is_rest_day: daySchedule.isRestDay,
+            rest_description: daySchedule.restDescription || null
+          })
+          .select()
+          .single();
+
+        if (dayError) throw dayError;
+
+        // Add courses if not a rest day
+        if (!daySchedule.isRestDay && daySchedule.courses.length > 0) {
+          const scheduleCourses = daySchedule.courses.map((courseId, index) => ({
+            schedule_id: dayScheduleData.id,
+            course_id: courseId,
+            order_index: index
+          }));
+
+          const { error: coursesError } = await supabase
+            .from('schedule_courses')
+            .insert(scheduleCourses);
+
+          if (coursesError) throw coursesError;
+        }
+      }
+
+      await loadData();
+      setEditingProgram(null);
+      toast.success('Programme mis à jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du programme:', error);
+      toast.error('Erreur lors de la mise à jour du programme');
+    }
   };
 
-  const handleDeleteProgram = (programId: string) => {
-    // Already handled with Supabase in deleteProgram
-    loadData();
-    toast.success('Programme supprimé');
+  const handleDeleteProgram = async (programId: string) => {
+    try {
+      const { error } = await supabase
+        .from('weekly_programs')
+        .delete()
+        .eq('id', programId);
+
+      if (error) throw error;
+
+      await loadData();
+      toast.success('Programme supprimé');
+    } catch (error) {
+      console.error('Erreur lors de la suppression du programme:', error);
+      toast.error('Erreur lors de la suppression du programme');
+    }
   };
 
   const toggleRestDay = (programId: string, dayOfWeek: number) => {
