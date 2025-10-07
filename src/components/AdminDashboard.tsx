@@ -336,7 +336,6 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header 
-        onLogout={signOut} 
         userInfo={{
           username: user?.email || '',
           subscription: 'Admin'

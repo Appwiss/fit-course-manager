@@ -83,8 +83,7 @@ export function ClientDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header 
-        onLogout={signOut} 
+      <Header
         userInfo={{
           username: user?.email || '',
           subscription: 'debutant'

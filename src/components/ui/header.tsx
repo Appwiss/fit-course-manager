@@ -1,15 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
-  onLogout: () => void;
   userInfo?: {
     username: string;
     subscription?: string;
   };
 }
 
-export function Header({ onLogout, userInfo }: HeaderProps) {
+export function Header({ userInfo }: HeaderProps) {
+  const { signOut } = useAuth();
   return (
     <header className="bg-card border-b border-border/50 sticky top-0 z-40 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -40,10 +41,7 @@ export function Header({ onLogout, userInfo }: HeaderProps) {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => {
-            console.log('Bouton déconnexion cliqué');
-            onLogout();
-          }}
+          onClick={signOut}
           className="flex items-center space-x-2"
         >
           <LogOut className="h-4 w-4" />
