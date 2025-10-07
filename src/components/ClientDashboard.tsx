@@ -218,13 +218,48 @@ export function ClientDashboard() {
                             {selectedCourse && (
                               <div className="space-y-4">
                                 <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                                  <iframe
-                                    src={selectedCourse.videoUrl}
-                                    title={selectedCourse.title}
-                                    className="w-full h-full"
-                                    frameBorder="0"
-                                    allowFullScreen
-                                  />
+                                  {selectedCourse.videoUrl && (
+                                    <>
+                                      {/* Detect YouTube URLs and use proper embed */}
+                                      {(selectedCourse.videoUrl.includes('youtube.com') || selectedCourse.videoUrl.includes('youtu.be')) ? (
+                                        <iframe
+                                          src={selectedCourse.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                                          title={selectedCourse.title}
+                                          className="w-full h-full"
+                                          frameBorder="0"
+                                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                          allowFullScreen
+                                        />
+                                      ) : selectedCourse.videoUrl.includes('vimeo.com') ? (
+                                        <iframe
+                                          src={selectedCourse.videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/')}
+                                          title={selectedCourse.title}
+                                          className="w-full h-full"
+                                          frameBorder="0"
+                                          allow="autoplay; fullscreen; picture-in-picture"
+                                          allowFullScreen
+                                        />
+                                      ) : selectedCourse.videoUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                                        <video
+                                          controls
+                                          className="w-full h-full"
+                                          poster={selectedCourse.thumbnail}
+                                          playsInline
+                                        >
+                                          <source src={selectedCourse.videoUrl} type="video/mp4" />
+                                          Votre navigateur ne supporte pas la lecture vidéo.
+                                        </video>
+                                      ) : (
+                                        <iframe
+                                          src={selectedCourse.videoUrl}
+                                          title={selectedCourse.title}
+                                          className="w-full h-full"
+                                          frameBorder="0"
+                                          allowFullScreen
+                                        />
+                                      )}
+                                    </>
+                                  )}
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div>
