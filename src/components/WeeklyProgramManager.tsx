@@ -127,9 +127,13 @@ export function WeeklyProgramManager() {
       setNewProgram({ name: '', description: '' });
       setShowCreateProgram(false);
       toast.success('Programme créé avec succès');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la création du programme:', error);
-      toast.error('Erreur lors de la création du programme');
+      if (error?.message?.includes('refresh_token') || error?.code === 'refresh_token_not_found') {
+        toast.error('Session expirée. Veuillez vous reconnecter.');
+      } else {
+        toast.error(error?.message || 'Erreur lors de la création du programme');
+      }
     }
   };
 
